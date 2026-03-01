@@ -1,0 +1,29 @@
+@mixin card-base {
+  background: #fff;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  border: 1px solid rgba(0, 74, 153, 0.08);
+}
+
+@mixin button-primary {
+  background: $color-green;
+  color: #fff;
+  border: none;
+  border-radius: $radius-md;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform $transition-base, box-shadow $transition-base;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(120, 184, 51, 0.5);
+  }
+}
+
+@mixin overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+}
