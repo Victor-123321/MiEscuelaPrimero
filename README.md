@@ -8,7 +8,7 @@
 
 ## 📖 About
 
-**Mi Escuela Primero** is a web platform built for a social impact program in Nuevo León, México. It serves as an interactive catalog that transparently showcases the needs of public elementary schools — from technology equipment and furniture to infrastructure repairs and sports gear — enabling companies and individuals to make targeted, meaningful donations.
+**Mi Escuela Primero** is a web platform built for a social impact program in Jalisco, México. It serves as an interactive catalog that transparently showcases the needs of public elementary schools — from technology equipment and furniture to infrastructure repairs and sports gear — enabling companies and individuals to make targeted, meaningful donations.
 
 The platform bridges the gap between schools that lack resources and donors who want to help, ensuring every contribution is traceable and impactful.
 
@@ -76,7 +76,7 @@ npm -v    # should be 9+
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/mi-escuela-primero.git
+git clone https://github.com/Victor-123321/MiEscuelaPrimero
 cd mi-escuela-primero
 
 # 2. Create a Vite + React project (if starting fresh)
@@ -144,6 +144,7 @@ The Admin panel accepts `.xlsx` or `.csv` files with the following columns:
 
 ## 🗺️ Roadmap
 
+- [ ] Refactor styles in SCSS for maintainability
 - [ ] Supabase integration for real-time data persistence
 - [ ] Admin authentication (Supabase Auth)
 - [ ] School detail dedicated pages with shareable URLs
@@ -157,7 +158,7 @@ The Admin panel accepts `.xlsx` or `.csv` files with the following columns:
 ## 🛠️ Tech Stack
 
 - **Framework** — [React 18](https://react.dev/) via [Vite](https://vitejs.dev/)
-- **Styling** — Inline styles with CSS variables (no external CSS framework required)
+- **Styling** — Inline styles with CSS variables, WIP: passing to SCSS for maintainability
 - **Icons** — Emoji-based (Lucide React ready to integrate)
 - **File Parsing** — PapaParse-ready CSV/Excel upload component
 - **Database (planned)** — [Supabase](https://supabase.com/)
@@ -186,4 +187,4 @@ MIT © Mi Escuela Primero — Nuevo León, México
 
 **Mi Escuela Primero** is a social impact initiative dedicated to improving educational conditions in public elementary schools across Nuevo León. Every donation is tracked, reported, and directly applied to the school's specific needs.
 
-📧 contacto@mpj.org.mx · 📞 +52 81 0000-0000
+📧 contacto@mpj.org.mx · 📞 +52 33 0000-0000
