@@ -55,7 +55,10 @@ export default function App() {
     }}>
       <style>{`
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { max-width: 100%; overflow-x: hidden; }
         body { background: ${COLORS.gray}; }
+        img { max-width: 100%; }
+        input, textarea, button { font-family: inherit; }
       `}</style>
 
       <Navbar
