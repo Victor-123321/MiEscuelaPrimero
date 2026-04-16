@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS schools (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  municipality VARCHAR(100) NOT NULL,
+  category VARCHAR(100),
+  type VARCHAR(100),
+  description TEXT,
+  students INT,
+  teachers INT,
+  funding_pct DECIMAL(5,2) DEFAULT 0,
+  urgent BOOLEAN DEFAULT FALSE,
+  status ENUM('active', 'inactive') DEFAULT 'active',
+  school_image_url VARCHAR(500),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_municipality (municipality),
+  INDEX idx_category (category),
+  INDEX idx_urgent (urgent),
+  INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
