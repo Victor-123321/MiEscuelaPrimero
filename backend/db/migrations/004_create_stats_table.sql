@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS stats (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  stat_key VARCHAR(100) UNIQUE NOT NULL,
+  stat_value VARCHAR(500) NOT NULL,
+  stat_label VARCHAR(255),
+  display_order INT DEFAULT 0,
+  updated_by INT,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (updated_by) REFERENCES admin_users(id) ON DELETE SET NULL,
+  INDEX idx_stat_key (stat_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
