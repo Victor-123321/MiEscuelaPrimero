@@ -22,10 +22,35 @@ export const CONTACT = {
   instagram: "@mexicanosprimjal",
 };
 
-export const CONTRIBUTION_TYPES = [
-  { id: "especie",      label: "Donación en especie",          icon: "📦" },
-  { id: "economica",   label: "Donación económica",            icon: "💰" },
-  { id: "voluntariado",label: "Voluntariado",                  icon: "🙌" },
-  { id: "talleres",    label: "Brindar talleres",              icon: "🎓" },
-  { id: "vinculacion", label: "Vincularme con otras personas", icon: "🔗" },
+// Tipos de donativo per the MPJ spec
+// CONTRIBUTION_TYPES is an alias used by ContributeStrip and HowItWorksPage
+export const DONATION_TYPES = [
+  { id: "formacion_familias",     label: "Formación para familias",          icon: "👨‍👩‍👧", group: "formacion" },
+  { id: "formacion_estudiantes",  label: "Formación para estudiantes",       icon: "📚", group: "formacion" },
+  { id: "formacion_docentes",     label: "Formación a docentes",             icon: "🧑‍🏫", group: "formacion" },
+  { id: "atencion_psicologica",   label: "Atención psicológica para estudiantes", icon: "🧠", group: "psicologia" },
+  { id: "material_tecnologico",   label: "Material tecnológico",             icon: "💻", group: "material" },
+  { id: "material_papeleria",     label: "Material de papelería",            icon: "📝", group: "material" },
+  { id: "material_literario",     label: "Material literario",               icon: "📖", group: "material" },
+  { id: "material_ed_fisica",     label: "Material de educación física",     icon: "⚽", group: "material" },
+  { id: "material_infraestructura", label: "Material de infraestructura",   icon: "🔨", group: "material" },
+  { id: "mobiliario",             label: "Mobiliario",                       icon: "🪑", group: "material" },
+  { id: "transporte",             label: "Transporte",                       icon: "🚌", group: "acceso" },
+  { id: "condiciones_camino",     label: "Condiciones del camino",           icon: "🛤️", group: "acceso" },
+  { id: "salud_fisica",           label: "Salud física",                     icon: "🏥", group: "acceso" },
+  { id: "visitas_extraescolares", label: "Visitas extraescolares",           icon: "🗺️", group: "acceso" },
+  { id: "apoyo_gestion",          label: "Apoyo en gestión",                 icon: "📋", group: "acceso" },
+  { id: "otro",                   label: "Otro",                             icon: "➕", group: "otro" },
 ];
+
+export const TIPOS_INSTANCIA = [
+  { id: "empresa",              label: "Empresa" },
+  { id: "osc",                  label: "Organización de la sociedad civil" },
+  { id: "inst_educativa",       label: "Institución educativa" },
+  { id: "gobierno_municipal",   label: "Gobierno municipal" },
+  { id: "ninguna",              label: "No represento una instancia" },
+  { id: "otro",                 label: "Otro" },
+];
+
+// Alias used in ContributeStrip and HowItWorksPage
+export const CONTRIBUTION_TYPES = DONATION_TYPES;

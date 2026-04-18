@@ -1,36 +1,59 @@
--- Sample schools from Jalisco region
-INSERT INTO schools (name, municipality, category, type, description, students, teachers, funding_pct, urgent, status) VALUES
-('Primaria Guadalajara Centro', 'Guadalajara', 'Infraestructura', 'Escuela Primaria', 'Escuela en el corazón de Guadalajara necesita mejorar sus instalaciones para brindar educación de calidad.', 450, 18, 45.00, TRUE, 'active'),
-('Colegio Zapopan Futuro', 'Zapopan', 'Educación', 'Escuela Primaria', 'Institución dedicada a formar líderes del futuro con enfoque en tecnología y valores cívicos.', 320, 14, 65.00, FALSE, 'active'),
-('Escuela Municipal Tonalá', 'Tonalá', 'Nutrición', 'Escuela Primaria', 'Escuela municipal comprometida con educación de calidad y bienestar integral de los estudiantes.', 280, 12, 30.00, TRUE, 'active'),
-('Instituto Educativo Puerto Vallarta', 'Puerto Vallarta', 'Infraestructura', 'Escuela Técnica', 'Centro educativo con enfoque técnico y profesional para preparar a jóvenes de la región costera.', 380, 16, 55.00, FALSE, 'active'),
-('Primaria Colotlán Rural', 'Colotlán', 'Infraestructura', 'Escuela Primaria', 'Escuela en zona rural con acceso limitado a recursos básicos; prioritaria para la transformación educativa.', 150, 6, 20.00, TRUE, 'active');
+-- Insert sample schools
+INSERT INTO schools (name, municipality, type, description, students, teachers, urgent, status) VALUES
+('Francisco Rojas',  'Arandas',              'Primaria',   'Escuela en Arandas que requiere materiales, infraestructura y formación.',        280, 10, TRUE,  'active'),
+('Los Aguirre',      'San Juan de los Lagos','Primaria',   'Escuela que necesita material de papelería y recursos educativos.',               180,  7, FALSE, 'active'),
+('Benito Juárez',    'Guadalajara',          'Primaria',   'Escuela urbana con necesidades de mobiliario y equipamiento tecnológico.',         420, 16, FALSE, 'active'),
+('Lázaro Cárdenas',  'Zapopan',              'Primaria',   'Escuela que requiere computadoras y conectividad para su aula digital.',           310, 11, TRUE,  'active'),
+('Vicente Guerrero', 'Tlaquepaque',          'Secundaria', 'Secundaria técnica con necesidades de infraestructura y material deportivo.',      380, 15, FALSE, 'active');
 
--- School needs for Primaria Guadalajara Centro
-INSERT INTO school_needs (school_id, title, description, amount_needed, amount_funded, status)
-SELECT s.id, 'Libros y Materiales de Lectura', 'Se necesitan libros para mejorar la biblioteca escolar y fomentar el hábito de la lectura.', 50000.00, 22500.00, 'in-progress'
-FROM schools s WHERE s.name = 'Primaria Guadalajara Centro';
+-- Needs for Francisco Rojas
+INSERT INTO school_needs (school_id, categoria, subcategoria, propuesta, cantidad, unidad, estado, detalles)
+SELECT s.id, 'Material', 'Pizarrones / pintarrones', 'Pizarrones', 5, 'Piezas', 'Cubierto', ''
+FROM schools s WHERE s.name = 'Francisco Rojas';
 
-INSERT INTO school_needs (school_id, title, description, amount_needed, amount_funded, status)
-SELECT s.id, 'Reparación de Techo', 'El techo principal requiere reparación urgente para garantizar la seguridad de alumnos y maestros.', 120000.00, 0.00, 'open'
-FROM schools s WHERE s.name = 'Primaria Guadalajara Centro';
+INSERT INTO school_needs (school_id, categoria, subcategoria, propuesta, cantidad, unidad, estado, detalles)
+SELECT s.id, 'Infraestructura', 'Construcción materiales', 'Broachas de 6"', 3, 'Piezas', 'Aun no cubierto', ''
+FROM schools s WHERE s.name = 'Francisco Rojas';
 
--- School needs for Colegio Zapopan Futuro
-INSERT INTO school_needs (school_id, title, description, amount_needed, amount_funded, status)
-SELECT s.id, 'Equipos de Cómputo', 'Se necesitan computadoras para el laboratorio de tecnología y fortalecer habilidades digitales.', 80000.00, 52000.00, 'in-progress'
-FROM schools s WHERE s.name = 'Colegio Zapopan Futuro';
+INSERT INTO school_needs (school_id, categoria, subcategoria, propuesta, cantidad, unidad, estado, detalles)
+SELECT s.id, 'Infraestructura', 'Construcción materiales', 'Puertas de herrería', 2, 'Piezas', 'Aun no cubierto', ''
+FROM schools s WHERE s.name = 'Francisco Rojas';
 
--- School needs for Escuela Municipal Tonalá
-INSERT INTO school_needs (school_id, title, description, amount_needed, amount_funded, status)
-SELECT s.id, 'Programa de Alimentación', 'Apoyo para mantener el programa de desayunos escolares y garantizar nutrición adecuada.', 45000.00, 13500.00, 'in-progress'
-FROM schools s WHERE s.name = 'Escuela Municipal Tonalá';
+INSERT INTO school_needs (school_id, categoria, subcategoria, propuesta, cantidad, unidad, estado, detalles)
+SELECT s.id, 'Material', 'Material de educación física', 'Balones', 6, 'Piezas', 'Aun no cubierto', ''
+FROM schools s WHERE s.name = 'Francisco Rojas';
 
--- School needs for Instituto Educativo Puerto Vallarta
-INSERT INTO school_needs (school_id, title, description, amount_needed, amount_funded, status)
-SELECT s.id, 'Mobiliario Escolar', 'Escritorios y sillas nuevas para aulas; el mobiliario actual está deteriorado.', 35000.00, 0.00, 'open'
-FROM schools s WHERE s.name = 'Instituto Educativo Puerto Vallarta';
+INSERT INTO school_needs (school_id, categoria, subcategoria, propuesta, cantidad, unidad, estado, detalles)
+SELECT s.id, 'Formación', 'Formación para docentes', 'Docentes: convivencia', 6, 'Horas', 'Aun no cubierto', 'Formación de 2-4 horas para grupo de 6 docentes'
+FROM schools s WHERE s.name = 'Francisco Rojas';
 
--- School needs for Primaria Colotlán Rural
-INSERT INTO school_needs (school_id, title, description, amount_needed, amount_funded, status)
-SELECT s.id, 'Instalación de Agua Potable', 'Proyecto para mejorar acceso a agua potable y sanitarios en condiciones dignas.', 150000.00, 30000.00, 'in-progress'
-FROM schools s WHERE s.name = 'Primaria Colotlán Rural';
+INSERT INTO school_needs (school_id, categoria, subcategoria, propuesta, cantidad, unidad, estado, detalles)
+SELECT s.id, 'Formación', 'Formación para familias', 'Familias: convivencia', 3, 'Horas', 'Aun no cubierto', 'Formación de 2 horas para grupo de 30 familias'
+FROM schools s WHERE s.name = 'Francisco Rojas';
+
+-- Needs for Los Aguirre
+INSERT INTO school_needs (school_id, categoria, subcategoria, propuesta, cantidad, unidad, estado, detalles)
+SELECT s.id, 'Material', 'Material de papelería', 'Hojas blancas', 10, 'Paquete', 'Aun no cubierto', 'Paquetes de 500'
+FROM schools s WHERE s.name = 'Los Aguirre';
+
+INSERT INTO school_needs (school_id, categoria, subcategoria, propuesta, cantidad, unidad, estado, detalles)
+SELECT s.id, 'Material', 'Material de papelería', 'Hojas de colores', 5, 'Paquete', 'Cubierto parcialmente', 'Paquetes de 1000'
+FROM schools s WHERE s.name = 'Los Aguirre';
+
+-- Needs for Benito Juárez
+INSERT INTO school_needs (school_id, categoria, subcategoria, propuesta, cantidad, unidad, estado, detalles)
+SELECT s.id, 'Material', 'Material tecnológico', 'Computadoras', 10, 'Piezas', 'Cubierto', ''
+FROM schools s WHERE s.name = 'Benito Juárez';
+
+INSERT INTO school_needs (school_id, categoria, subcategoria, propuesta, cantidad, unidad, estado, detalles)
+SELECT s.id, 'Infraestructura', 'Construcción materiales', 'Pintura blanca', 20, 'Cubetas', 'Aun no cubierto', 'Para pintar 3 aulas'
+FROM schools s WHERE s.name = 'Benito Juárez';
+
+-- Needs for Lázaro Cárdenas
+INSERT INTO school_needs (school_id, categoria, subcategoria, propuesta, cantidad, unidad, estado, detalles)
+SELECT s.id, 'Material', 'Material tecnológico', 'Laptops', 15, 'Piezas', 'Aun no cubierto', ''
+FROM schools s WHERE s.name = 'Lázaro Cárdenas';
+
+INSERT INTO school_needs (school_id, categoria, subcategoria, propuesta, cantidad, unidad, estado, detalles)
+SELECT s.id, 'Infraestructura', 'Construcción materiales', 'Router WiFi', 2, 'Piezas', 'Cubierto', ''
+FROM schools s WHERE s.name = 'Lázaro Cárdenas';

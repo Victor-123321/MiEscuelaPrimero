@@ -28,11 +28,13 @@ const schoolSchema = Joi.object({
 });
 
 const schoolNeedSchema = Joi.object({
-  title: Joi.string().max(255).required(),
-  description: Joi.string().optional().allow(''),
-  amount_needed: Joi.number().min(0).optional(),
-  amount_funded: Joi.number().min(0).optional(),
-  status: Joi.string().valid('open', 'funded', 'in-progress').optional(),
+  categoria:    Joi.string().max(100).optional().allow(''),
+  subcategoria: Joi.string().max(150).optional().allow(''),
+  propuesta:    Joi.string().max(500).optional().allow(''),
+  cantidad:     Joi.number().min(0).optional().allow(null),
+  unidad:       Joi.string().max(80).optional().allow(''),
+  estado:       Joi.string().max(60).optional().allow(''),
+  detalles:     Joi.string().optional().allow(''),
 });
 
 const statUpdateSchema = Joi.object({

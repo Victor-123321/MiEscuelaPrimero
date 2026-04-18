@@ -7,6 +7,14 @@ export default defineConfig({
   server: {
     allowedHosts: [
       'miescuelaprimero.onrender.com'
-    ]
-  }
+    ],
+    proxy: {
+      // Proxy /api calls to the Express backend in development
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
 })

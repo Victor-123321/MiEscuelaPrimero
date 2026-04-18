@@ -143,7 +143,6 @@ async function runSeeds() {
   try {
     if (!(await isDatabaseEmpty(pool))) {
       log.info('Seed data already present — skipping seeds.');
-      await pool.end();
       return;
     }
 

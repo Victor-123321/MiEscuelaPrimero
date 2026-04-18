@@ -2,13 +2,35 @@
 
 const Papa = require('papaparse');
 const XLSX = require('xlsx');
+const { query } = require('../config/database');
 const School = require('../models/School');
 const FileUploadLog = require('../models/FileUploadLog');
 const AuditLog = require('../models/AuditLog');
 const { AppError } = require('../middleware/errorHandler');
 const MESSAGES = require('../utils/errorMessages');
-const { UPLOAD_COLUMNS } = require('../config/constants');
 const logger = require('../utils/logger');
+
+// ── Excel column names (case-insensitive) ─────────────────────────────────
+// Expected: Municipio | Escuela | Categoría | Subcategoría | Propuesta | Cantidad | Unidad | Estado | Detalles
+const COL = {
+  municipio:    ['municipio'],
+  escuela:      ['escuela', 'nombre_escuela', 'school_name'],
+  categoria:    ['categoria', 'categoría', 'category'],
+  subcategoria: ['subcategoria', 'subcategoría', 'subcategory'],
+  propuesta:    ['propuesta', 'proposal', 'articulo'],
+  cantidad:     ['cantidad', 'quantity'],
+  unidad:       ['unidad', 'unit'],
+  estado:       ['estado', 'status', 'state'],
+  detalles:     ['detalles', 'details', 'descripcion', 'descripción'],
+};
+
+function getCol(row, aliases) {
+  for (const alias of aliases) {
+    const key = Object.keys(row).find(k => k.toLowerCase().trim() === alias);
+    if (key !== undefined) return String(row[key] ?? '').trim();
+  }
+  return '';
+}
 
 function parseCSV(buffer) {
   const text = buffer.toString('utf8');
@@ -23,32 +45,23 @@ function parseXLSX(buffer) {
   return XLSX.utils.sheet_to_json(sheet, { defval: '' });
 }
 
-function validateColumns(rows) {
-  if (!rows.length) return [];
-  const headers = Object.keys(rows[0]);
-  const missing = UPLOAD_COLUMNS.filter((col) => !headers.includes(col));
-  return missing;
-}
+async function findOrCreateSchool(name, municipality) {
+  const rows = await query(
+    'SELECT id FROM schools WHERE name = ? AND municipality = ? AND status = "active" LIMIT 1',
+    [name, municipality]
+  );
+  if (rows.length) return rows[0].id;
 
-function rowToSchoolData(row) {
-  return {
-    name: String(row.school_name || '').trim(),
-    municipality: String(row.municipality || '').trim(),
-    category: String(row.category || '').trim() || null,
-    type: String(row.type || '').trim() || null,
-    description: String(row.description || '').trim() || null,
-    funding_pct: parseFloat(row.funding_pct) || 0,
-    students: parseInt(row.students, 10) || null,
-    teachers: parseInt(row.teachers, 10) || null,
-    urgent: ['true', '1', 'si', 'sí', 'yes'].includes(String(row.urgent || '').toLowerCase()),
-    status: 'active',
-  };
+  const result = await query(
+    'INSERT INTO schools (name, municipality, status) VALUES (?, ?, "active")',
+    [name, municipality]
+  );
+  return result.insertId;
 }
 
 async function processUpload(file, adminContext) {
   const { originalname, buffer, mimetype, size } = file;
 
-  // Create upload log entry
   const log = await FileUploadLog.create({
     filename: originalname,
     fileSize: size,
@@ -67,23 +80,54 @@ async function processUpload(file, adminContext) {
       throw new AppError(MESSAGES.UPLOAD.INVALID_FORMAT, 400);
     }
 
-    const missingCols = validateColumns(rows);
-    if (missingCols.length) {
-      throw new AppError(MESSAGES.UPLOAD.MISSING_COLUMNS(missingCols), 400);
-    }
+    if (!rows.length) throw new AppError('El archivo está vacío.', 400);
 
     let successful = 0;
     let failed = 0;
     const errors = [];
 
+    // Cache school ids to avoid duplicate lookups
+    const schoolCache = {};
+
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       try {
-        const data = rowToSchoolData(row);
-        if (!data.name || !data.municipality) {
-          throw new Error('school_name y municipality son requeridos.');
+        const municipio    = getCol(row, COL.municipio);
+        const escuela      = getCol(row, COL.escuela);
+        const categoria    = getCol(row, COL.categoria);
+        const subcategoria = getCol(row, COL.subcategoria);
+        const propuesta    = getCol(row, COL.propuesta);
+        const cantidadStr  = getCol(row, COL.cantidad);
+        const unidad       = getCol(row, COL.unidad);
+        const estado       = getCol(row, COL.estado);
+        const detalles     = getCol(row, COL.detalles);
+
+        if (!municipio || !escuela) {
+          throw new Error('Municipio y Escuela son requeridos.');
         }
-        await School.create(data);
+
+        const cacheKey = `${municipio.toLowerCase()}|||${escuela.toLowerCase()}`;
+        if (!schoolCache[cacheKey]) {
+          schoolCache[cacheKey] = await findOrCreateSchool(escuela, municipio);
+        }
+        const schoolId = schoolCache[cacheKey];
+
+        const cantidad = cantidadStr !== '' ? parseFloat(cantidadStr) : null;
+
+        await query(
+          `INSERT INTO school_needs (school_id, categoria, subcategoria, propuesta, cantidad, unidad, estado, detalles)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            schoolId,
+            categoria || null,
+            subcategoria || null,
+            propuesta || null,
+            isNaN(cantidad) ? null : cantidad,
+            unidad || null,
+            estado || null,
+            detalles || null,
+          ]
+        );
         successful++;
       } catch (err) {
         failed++;
