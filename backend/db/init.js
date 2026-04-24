@@ -166,7 +166,14 @@ async function runSeeds() {
     // 3. Run stats + footer seed
     await executeSeedFile(pool, 'seed_stats_and_footer.sql');
 
-    log.success('Seed data population complete.');
+    // Report counts
+    try {
+      const [sc] = await pool.execute('SELECT COUNT(*) AS cnt FROM schools');
+      const [nc] = await pool.execute('SELECT COUNT(*) AS cnt FROM school_needs');
+      log.success(`Seed data population complete. Schools: ${sc[0].cnt}, Needs: ${nc[0].cnt}`);
+    } catch {
+      log.success('Seed data population complete.');
+    }
   } finally {
     await pool.end();
   }

@@ -3,21 +3,17 @@
 const School = require('../models/School');
 const AuditLog = require('../models/AuditLog');
 const { NotFoundError } = require('../middleware/errorHandler');
-const { buildPagination, parseBooleanFilter } = require('../utils/helpers');
+const { buildPagination } = require('../utils/helpers');
 const MESSAGES = require('../utils/errorMessages');
 
 async function listSchools(queryParams) {
-  const { limit = 20, offset = 0, municipality, category, type, urgent, search, sort_by, sort_order } = queryParams;
-
-  const urgentFilter = parseBooleanFilter(urgent);
+  const { limit = 20, offset = 0, municipio, nivel_educativo, search, sort_by, sort_order } = queryParams;
 
   const { schools, total } = await School.findAll({
     limit: parseInt(limit, 10),
     offset: parseInt(offset, 10),
-    municipality,
-    category,
-    type,
-    urgent: urgentFilter,
+    municipio,
+    nivel_educativo,
     search,
     sortBy: sort_by,
     sortOrder: sort_order,

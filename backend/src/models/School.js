@@ -3,22 +3,20 @@
 const { query } = require('../config/database');
 
 class School {
-  static async findAll({ limit = 20, offset = 0, municipality, category, type, urgent, search, sortBy = 'created_at', sortOrder = 'desc' } = {}) {
-    const allowedSortFields = ['id', 'name', 'municipality', 'funding_pct', 'students', 'created_at'];
+  static async findAll({ limit = 20, offset = 0, municipio, nivel_educativo, search, sortBy = 'created_at', sortOrder = 'desc' } = {}) {
+    const allowedSortFields = ['id', 'escuela', 'municipio', 'estudiantes', 'created_at'];
     const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'created_at';
     const safeSortOrder = sortOrder === 'asc' ? 'ASC' : 'DESC';
 
     const conditions = ['s.status = ?'];
     const params = ['active'];
 
-    if (municipality) { conditions.push('s.municipality = ?'); params.push(municipality); }
-    if (category) { conditions.push('s.category = ?'); params.push(category); }
-    if (type) { conditions.push('s.type = ?'); params.push(type); }
-    if (urgent !== null && urgent !== undefined) { conditions.push('s.urgent = ?'); params.push(urgent); }
+    if (municipio) { conditions.push('s.municipio = ?'); params.push(municipio); }
+    if (nivel_educativo) { conditions.push('s.nivel_educativo = ?'); params.push(nivel_educativo); }
     if (search) {
-      conditions.push('(s.name LIKE ? OR s.description LIKE ? OR s.municipality LIKE ?)');
+      conditions.push('(s.escuela LIKE ? OR s.municipio LIKE ?)');
       const like = `%${search}%`;
-      params.push(like, like, like);
+      params.push(like, like);
     }
 
     const where = conditions.join(' AND ');
@@ -48,15 +46,15 @@ class School {
   }
 
   static async findNeeds(schoolId) {
-    return query('SELECT * FROM school_needs WHERE school_id = ? ORDER BY created_at ASC', [schoolId]);
+    return query('SELECT * FROM school_needs WHERE school_id = ? ORDER BY categoria, subcategoria ASC', [schoolId]);
   }
 
   static async create(data) {
-    const { name, municipality, category, type, description, students, teachers, funding_pct, urgent, status, school_image_url } = data;
+    const { municipio, plantel, escuela, personal_escolar, estudiantes, nivel_educativo, cct, modalidad, turno, sostenimiento, direccion, ubicacion, status, school_image_url } = data;
     const result = await query(
-      `INSERT INTO schools (name, municipality, category, type, description, students, teachers, funding_pct, urgent, status, school_image_url)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [name, municipality, category || null, type || null, description || null, students || null, teachers || null, funding_pct || 0, urgent ? 1 : 0, status || 'active', school_image_url || null]
+      `INSERT INTO schools (municipio, plantel, escuela, personal_escolar, estudiantes, nivel_educativo, cct, modalidad, turno, sostenimiento, direccion, ubicacion, status, school_image_url)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [municipio, plantel || null, escuela, personal_escolar || null, estudiantes || null, nivel_educativo || null, cct || null, modalidad || null, turno || null, sostenimiento || null, direccion || null, ubicacion || null, status || 'active', school_image_url || null]
     );
     return School.findById(result.insertId);
   }
@@ -65,7 +63,7 @@ class School {
     const fields = [];
     const params = [];
 
-    const allowed = ['name', 'municipality', 'category', 'type', 'description', 'students', 'teachers', 'funding_pct', 'urgent', 'status', 'school_image_url'];
+    const allowed = ['municipio', 'plantel', 'escuela', 'personal_escolar', 'estudiantes', 'nivel_educativo', 'cct', 'modalidad', 'turno', 'sostenimiento', 'direccion', 'ubicacion', 'status', 'school_image_url'];
     for (const key of allowed) {
       if (data[key] !== undefined) {
         fields.push(`${key} = ?`);
@@ -85,10 +83,10 @@ class School {
   }
 
   static async addNeed(schoolId, data) {
-    const { title, description, amount_needed, amount_funded, status } = data;
+    const { categoria, subcategoria, propuesta, cantidad, unidad, estado, detalles } = data;
     const result = await query(
-      'INSERT INTO school_needs (school_id, title, description, amount_needed, amount_funded, status) VALUES (?, ?, ?, ?, ?, ?)',
-      [schoolId, title, description || null, amount_needed || null, amount_funded || 0, status || 'open']
+      'INSERT INTO school_needs (school_id, categoria, subcategoria, propuesta, cantidad, unidad, estado, detalles) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [schoolId, categoria, subcategoria || null, propuesta, cantidad || null, unidad || null, estado || 'Aun no cubierto', detalles || null]
     );
     const rows = await query('SELECT * FROM school_needs WHERE id = ?', [result.insertId]);
     return rows[0];
@@ -97,7 +95,7 @@ class School {
   static async updateNeed(schoolId, needId, data) {
     const fields = [];
     const params = [];
-    const allowed = ['title', 'description', 'amount_needed', 'amount_funded', 'status'];
+    const allowed = ['categoria', 'subcategoria', 'propuesta', 'cantidad', 'unidad', 'estado', 'detalles'];
     for (const key of allowed) {
       if (data[key] !== undefined) { fields.push(`${key} = ?`); params.push(data[key]); }
     }
@@ -110,6 +108,32 @@ class School {
 
   static async deleteNeed(schoolId, needId) {
     await query('DELETE FROM school_needs WHERE id = ? AND school_id = ?', [needId, schoolId]);
+  }
+
+  static async upsertByEscuela(data) {
+    const rows = await query('SELECT id FROM schools WHERE escuela = ? AND municipio = ?', [data.escuela, data.municipio]);
+    if (rows.length) {
+      await query(
+        'UPDATE schools SET plantel=?,personal_escolar=?,estudiantes=?,nivel_educativo=?,cct=?,modalidad=?,turno=?,sostenimiento=?,direccion=?,ubicacion=?,status="active",updated_at=NOW() WHERE id=?',
+        [data.plantel, data.personal_escolar, data.estudiantes, data.nivel_educativo, data.cct, data.modalidad, data.turno, data.sostenimiento, data.direccion, data.ubicacion, rows[0].id]
+      );
+      return rows[0].id;
+    }
+    const result = await query(
+      'INSERT INTO schools (municipio,plantel,escuela,personal_escolar,estudiantes,nivel_educativo,cct,modalidad,turno,sostenimiento,direccion,ubicacion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
+      [data.municipio, data.plantel, data.escuela, data.personal_escolar, data.estudiantes, data.nivel_educativo, data.cct, data.modalidad, data.turno, data.sostenimiento, data.direccion, data.ubicacion]
+    );
+    return result.insertId;
+  }
+
+  static async replaceNeeds(schoolId, needs) {
+    await query('DELETE FROM school_needs WHERE school_id = ?', [schoolId]);
+    for (const n of needs) {
+      await query(
+        'INSERT INTO school_needs (school_id,categoria,subcategoria,propuesta,cantidad,unidad,estado,detalles) VALUES (?,?,?,?,?,?,?,?)',
+        [schoolId, n.categoria, n.subcategoria || null, n.propuesta, n.cantidad || null, n.unidad || null, n.estado, n.detalles || null]
+      );
+    }
   }
 }
 

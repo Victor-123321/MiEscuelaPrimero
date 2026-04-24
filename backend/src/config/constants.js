@@ -46,17 +46,15 @@ const PAGINATION = {
   DEFAULT_OFFSET: 0,
 };
 
-const UPLOAD_COLUMNS = [
-  'school_name',
-  'municipality',
-  'category',
-  'type',
-  'description',
-  'funding_pct',
-  'students',
-  'teachers',
-  'urgent',
-];
+const UPLOAD_FORMAT = {
+  type: 'xlsx',
+  sheets: {
+    necesidades: { name: 'Necesidades', columns: ['Municipio', 'Escuela', 'Categoría', 'Subcategoría', 'Propuesta', 'Cantidad', 'Unidad', 'Estado', 'Detalles'] },
+    escuelas: { name: 'Datos de las escuelas', columns: ['Municipio', 'Plantel', 'Escuela', 'Personal escolar', 'Estudiantes', 'Nivel ed.', 'CCT', 'Modalidad', 'Turno', 'Sostenimiento', 'Dirección', 'Ubicación'] },
+  },
+};
+
+const UPLOAD_COLUMNS = UPLOAD_FORMAT.sheets.necesidades.columns;
 
 module.exports = {
   BRAND_COLORS,
@@ -66,5 +64,6 @@ module.exports = {
   UPLOAD_STATUS,
   ADMIN_ROLES,
   PAGINATION,
+  UPLOAD_FORMAT,
   UPLOAD_COLUMNS,
 };

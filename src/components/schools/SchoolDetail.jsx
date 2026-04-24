@@ -1,9 +1,20 @@
 import { COLORS } from "../../constants/colors";
 import ProgressBar from "../ui/ProgressBar";
 
+const ESTADO_STYLES = {
+  "Cubierto":              { background: "#e8f5e0", color: "#2d7a1f" },
+  "Aun no cubierto":       { background: "#fee8e8", color: "#c0392b" },
+  "Cubierto parcialmente": { background: "#fff3e0", color: "#b7580c" },
+};
+
 export default function SchoolDetail({ school, onClose, onContact }) {
-  const totalCost = school.needs.reduce((s, n) => s + n.qty * n.unitCost, 0);
-  const remaining = totalCost * (1 - school.funded / 100);
+  const total = school.needs.length;
+  const score = school.needs.reduce((s, n) => s + (n.estado === 'Cubierto' ? 1 : n.estado === 'Cubierto parcialmente' ? 0.5 : 0), 0);
+  const pct = total > 0 ? Math.round((score / total) * 100) : 0;
+
+  const catCount = {};
+  school.needs.forEach(n => { catCount[n.categoria] = (catCount[n.categoria] || 0) + 1; });
+  const primaryCat = Object.entries(catCount).sort((a, b) => b[1] - a[1])[0]?.[0] || '';
 
   return (
     <div
@@ -22,7 +33,7 @@ export default function SchoolDetail({ school, onClose, onContact }) {
       }}>
         {/* Hero image */}
         <div style={{ position: "relative" }}>
-          <img src={school.image} alt={school.name} style={{
+          <img src={school.image} alt={school.escuela} style={{
             width: "100%", height: 200, objectFit: "cover", display: "block",
             borderRadius: "18px 18px 0 0",
           }} />
@@ -38,28 +49,51 @@ export default function SchoolDetail({ school, onClose, onContact }) {
             padding: "24px 20px 16px",
           }}>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              <span style={{ background: COLORS.blue, color: "#fff", borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 600 }}>{school.category}</span>
-              <span style={{ background: "rgba(255,255,255,0.2)", color: "#fff", borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 600 }}>{school.municipality}</span>
-              <span style={{ background: "rgba(255,255,255,0.2)", color: "#fff", borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 600 }}>{school.type}</span>
-              {school.urgent && <span style={{ background: "#e05c5c", color: "#fff", borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 600 }}>🔥 Urgente</span>}
+              <span style={{ background: COLORS.blue, color: "#fff", borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 600 }}>{primaryCat}</span>
+              <span style={{ background: "rgba(255,255,255,0.2)", color: "#fff", borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 600 }}>{school.municipio}</span>
+              <span style={{ background: "rgba(255,255,255,0.2)", color: "#fff", borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 600 }}>{school.nivel_educativo}</span>
             </div>
           </div>
         </div>
 
         <div style={{ padding: "20px 20px 24px" }}>
           <h2 style={{ color: COLORS.text, fontSize: "clamp(18px, 3vw, 22px)", fontWeight: 800, marginBottom: 8 }}>
-            {school.name}
+            {school.escuela}
           </h2>
-          <p style={{ color: COLORS.muted, lineHeight: 1.6, marginBottom: 20, fontSize: 14 }}>
-            {school.description}
+
+          {/* Metadata pills */}
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+            {[
+              { label: `CCT: ${school.cct}` },
+              { label: school.modalidad },
+              { label: school.turno },
+              { label: school.sostenimiento },
+            ].map(m => (
+              <span key={m.label} style={{
+                background: "#f0f4fb", color: COLORS.muted,
+                borderRadius: 6, padding: "3px 9px", fontSize: 11, fontWeight: 600,
+              }}>{m.label}</span>
+            ))}
+          </div>
+
+          <p style={{ color: COLORS.muted, lineHeight: 1.6, marginBottom: 4, fontSize: 13 }}>
+            📍 {school.direccion}
           </p>
+          <a
+            href={school.ubicacion}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontSize: 13, color: COLORS.blue, fontWeight: 600, display: "inline-block", marginBottom: 20 }}
+          >
+            Ver ubicación →
+          </a>
 
           {/* Stats */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 20 }}>
             {[
-              { label: "Estudiantes", val: school.students, icon: "👩‍🎓" },
-              { label: "Docentes",    val: school.teachers, icon: "👨‍🏫" },
-              { label: "Necesidades", val: school.needs.length, icon: "📋" },
+              { label: "Estudiantes",  val: school.estudiantes,     icon: "👩‍🎓" },
+              { label: "Personal",     val: school.personal_escolar, icon: "👨‍🏫" },
+              { label: "Necesidades",  val: school.needs.length,     icon: "📋" },
             ].map(s => (
               <div key={s.label} style={{
                 background: "#f4f6f9", borderRadius: 10, padding: "12px 8px", textAlign: "center",
@@ -74,14 +108,10 @@ export default function SchoolDetail({ school, onClose, onContact }) {
           {/* Progress */}
           <div style={{ marginBottom: 20 }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 7 }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: COLORS.text }}>Progreso de financiamiento</span>
-              <span style={{ fontWeight: 800, color: COLORS.green, fontSize: 16 }}>{school.funded}%</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: COLORS.text }}>Progreso de necesidades</span>
+              <span style={{ fontWeight: 800, color: COLORS.green, fontSize: 16 }}>{pct}%</span>
             </div>
-            <ProgressBar pct={school.funded} />
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 5 }}>
-              <span style={{ fontSize: 12, color: COLORS.muted }}>Recaudado: ${(totalCost * school.funded / 100).toLocaleString()}</span>
-              <span style={{ fontSize: 12, color: "#e05c5c", fontWeight: 600 }}>Pendiente: ${remaining.toLocaleString()}</span>
-            </div>
+            <ProgressBar pct={pct} />
           </div>
 
           {/* Needs table */}
@@ -97,26 +127,21 @@ export default function SchoolDetail({ school, onClose, onContact }) {
                 background: i % 2 === 0 ? "#fff" : "#f9fafb",
               }}>
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: 13, color: COLORS.text }}>{n.item}</div>
-                  <div style={{ fontSize: 11, color: COLORS.muted }}>{n.model}</div>
+                  <div style={{ fontWeight: 600, fontSize: 13, color: COLORS.text }}>{n.propuesta}</div>
+                  <div style={{ fontSize: 11, color: COLORS.muted }}>{n.subcategoria}</div>
                 </div>
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ fontWeight: 700, color: COLORS.blue, fontSize: 14 }}>{n.qty}</div>
-                  <div style={{ fontSize: 10, color: COLORS.muted }}>uds.</div>
+                  <div style={{ fontWeight: 700, color: COLORS.blue, fontSize: 14 }}>{n.cantidad}</div>
+                  <div style={{ fontSize: 10, color: COLORS.muted }}>{n.unidad}</div>
                 </div>
                 <div style={{ textAlign: "right" }}>
-                  <div style={{ fontWeight: 700, color: COLORS.text, fontSize: 13 }}>${(n.qty * n.unitCost).toLocaleString()}</div>
-                  <div style={{ fontSize: 10, color: COLORS.muted }}>${n.unitCost.toLocaleString()} c/u</div>
+                  <span style={{
+                    borderRadius: 6, padding: "3px 8px", fontSize: 11, fontWeight: 600,
+                    ...(ESTADO_STYLES[n.estado] || { background: "#f0f4fb", color: COLORS.muted }),
+                  }}>{n.estado}</span>
                 </div>
               </div>
             ))}
-            <div style={{
-              display: "flex", justifyContent: "space-between",
-              padding: "12px 14px", background: COLORS.blue,
-            }}>
-              <span style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>Total estimado</span>
-              <span style={{ color: COLORS.amber, fontWeight: 800, fontSize: 15 }}>${totalCost.toLocaleString()}</span>
-            </div>
           </div>
 
           {/* CTA */}

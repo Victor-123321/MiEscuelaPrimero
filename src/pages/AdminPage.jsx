@@ -2,7 +2,6 @@ import { useState } from "react";
 import { COLORS } from "../constants/colors";
 import { MOCK_SCHOOLS } from "../data/mockSchools";
 import { FOOTER_STEPS } from "../data/mockStats";
-import ProgressBar from "../components/ui/ProgressBar";
 import Toast from "../components/ui/Toast";
 
 const TABS = [
@@ -75,7 +74,7 @@ export default function AdminPage({ stats, setStats }) {
               Carga el Archivo Maestro
             </h3>
             <p style={{ color: COLORS.muted, marginBottom: 24 }}>
-              Arrastra aquí tu archivo Excel (.xlsx) o CSV, o haz clic para seleccionar
+              Arrastra aquí el archivo Excel (.xlsx) con 2 hojas: Necesidades y Datos de las escuelas
             </p>
             <input
               type="file" accept=".xlsx,.csv" id="fileInput" style={{ display: "none" }}
@@ -84,7 +83,7 @@ export default function AdminPage({ stats, setStats }) {
                   setUploadStatus("processing");
                   setTimeout(() => {
                     setUploadStatus("success");
-                    showToast("Archivo procesado: 6 escuelas actualizadas exitosamente");
+                    showToast("Archivo procesado: escuelas y necesidades actualizadas exitosamente");
                   }, 1800);
                 }
               }}
@@ -114,31 +113,36 @@ export default function AdminPage({ stats, setStats }) {
             )}
           </div>
 
-          {/* Format reference table */}
+          {/* Format reference tables */}
           <div style={{ marginTop: 24, background: "#fff", borderRadius: 16, padding: 24, border: "1px solid #e8edf5" }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: COLORS.text, marginBottom: 12 }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: COLORS.text, marginBottom: 16 }}>
               Formato del Archivo Maestro
             </h3>
-            <div style={{ overflowX: "auto" }}>
+
+            {/* Sheet 1 */}
+            <h4 style={{ fontSize: 14, fontWeight: 700, color: COLORS.blue, marginBottom: 10 }}>
+              Hoja 1 — Necesidades
+            </h4>
+            <div style={{ overflowX: "auto", marginBottom: 24 }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                 <thead>
                   <tr style={{ background: COLORS.blue }}>
-                    {["Columna", "Tipo", "Ejemplo", "Requerido"].map(h => (
+                    {["Columna", "Ejemplo", "Notas"].map(h => (
                       <th key={h} style={{ color: "#fff", padding: "10px 14px", textAlign: "left", fontWeight: 600 }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {[
-                    ["nombre_escuela",    "Texto",          "Escuela Primaria Benito Juárez", "✅"],
-                    ["municipio",         "Texto",          "Monterrey",                      "✅"],
-                    ["categoria",         "Texto",          "Tecnología",                     "✅"],
-                    ["tipo_institucion",  "Texto",          "Pública",                        "✅"],
-                    ["descripcion",       "Texto largo",    "Esta escuela necesita…",         "✅"],
-                    ["porcentaje_fondeo", "Número (0-100)", "62",                             "✅"],
-                    ["estudiantes",       "Número",         "320",                            "❌"],
-                    ["maestros",          "Número",         "12",                             "❌"],
-                    ["urgente",           "Booleano",       "true/false",                     "❌"],
+                    ["Municipio",    "Arandas",                        "Municipio de la escuela"],
+                    ["Escuela",      "Francisco Rojas",                "Nombre de la escuela"],
+                    ["Categoría",    "Material",                       "Material · Infraestructura · Formación · Salud"],
+                    ["Subcategoría", "Pizarrones / pintarrones",       "Subcategoría de la necesidad"],
+                    ["Propuesta",    "Pizarrones",                     "Descripción específica del artículo"],
+                    ["Cantidad",     "5",                              "Número entero"],
+                    ["Unidad",       "Piezas",                         "Piezas · Metros · Paquete · etc."],
+                    ["Estado",       "Cubierto",                       "Cubierto · Aun no cubierto · Cubierto parcialmente"],
+                    ["Detalles",     "Paquetes de 500",                "Notas adicionales (opcional)"],
                   ].map((row, i) => (
                     <tr key={i} style={{ background: i % 2 === 0 ? "#fff" : COLORS.gray }}>
                       {row.map((cell, j) => (
@@ -153,6 +157,49 @@ export default function AdminPage({ stats, setStats }) {
                 </tbody>
               </table>
             </div>
+
+            {/* Sheet 2 */}
+            <h4 style={{ fontSize: 14, fontWeight: 700, color: COLORS.blue, marginBottom: 10 }}>
+              Hoja 2 — Datos de las escuelas
+            </h4>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                <thead>
+                  <tr style={{ background: COLORS.blue }}>
+                    {["Columna", "Ejemplo", "Notas"].map(h => (
+                      <th key={h} style={{ color: "#fff", padding: "10px 14px", textAlign: "left", fontWeight: 600 }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ["Municipio",        "Arandas",                      "✅ Requerido"],
+                    ["Plantel",          "Francisco Rojas González",      "Nombre del plantel"],
+                    ["Escuela",          "Francisco Rojas González",      "✅ Requerido (nombre único)"],
+                    ["Personal escolar", "6",                             "Número entero"],
+                    ["Estudiantes",      "119",                           "Número entero"],
+                    ["Nivel ed.",        "Primaria",                      "Primaria · Secundaria · Preescolar"],
+                    ["CCT",              "14EPR1614C",                    "Clave de centro de trabajo"],
+                    ["Modalidad",        "SEP-Multigrado",                "SEP-General · SEP-Multigrado · CONAFE"],
+                    ["Turno",            "Matutino",                      "Matutino · Vespertino"],
+                    ["Sostenimiento",    "Estatal",                       "Federal · Estatal · Federalizado"],
+                    ["Dirección",        "Llano Grande, CP 47198",        "Dirección física"],
+                    ["Ubicación",        "https://maps.app.goo.gl/...",   "Enlace a Google Maps"],
+                  ].map((row, i) => (
+                    <tr key={i} style={{ background: i % 2 === 0 ? "#fff" : COLORS.gray }}>
+                      {row.map((cell, j) => (
+                        <td key={j} style={{
+                          padding: "10px 14px", borderBottom: "1px solid #e8edf5",
+                          fontFamily: j === 0 ? "monospace" : "inherit",
+                          color: j === 0 ? COLORS.blue : COLORS.text,
+                        }}>{cell}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
             <button
               onClick={() => showToast("Plantilla CSV descargada")}
               style={{
@@ -269,44 +316,43 @@ export default function AdminPage({ stats, setStats }) {
             Gestión de Escuelas ({MOCK_SCHOOLS.length} registradas)
           </h3>
           <div style={{ border: "1px solid #e8edf5", borderRadius: 14, overflow: "hidden" }}>
-            {MOCK_SCHOOLS.map((school, i) => (
-              <div key={school.id} style={{
-                display: "grid", gridTemplateColumns: "1fr auto auto auto",
-                gap: 16, padding: "16px 20px", alignItems: "center",
-                borderBottom: i < MOCK_SCHOOLS.length - 1 ? "1px solid #e8edf5" : "none",
-                background: i % 2 === 0 ? "#fff" : COLORS.gray,
-              }}>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: COLORS.text }}>{school.name}</div>
-                  <div style={{ fontSize: 12, color: COLORS.muted }}>{school.municipality} · {school.category}</div>
+            {MOCK_SCHOOLS.map((school, i) => {
+              const catCount = {};
+              school.needs.forEach(n => { catCount[n.categoria] = (catCount[n.categoria] || 0) + 1; });
+              const primaryCat = Object.entries(catCount).sort((a, b) => b[1] - a[1])[0]?.[0] || '';
+              return (
+                <div key={school.id} style={{
+                  display: "grid", gridTemplateColumns: "1fr auto auto",
+                  gap: 16, padding: "16px 20px", alignItems: "center",
+                  borderBottom: i < MOCK_SCHOOLS.length - 1 ? "1px solid #e8edf5" : "none",
+                  background: i % 2 === 0 ? "#fff" : COLORS.gray,
+                }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: COLORS.text }}>{school.escuela}</div>
+                    <div style={{ fontSize: 12, color: COLORS.muted }}>{school.municipio} · {primaryCat} · {school.needs.length} necesidades</div>
+                  </div>
+                  <div style={{ fontSize: 12, color: COLORS.muted, whiteSpace: "nowrap" }}>
+                    {school.needs.length} necesidades
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button
+                      onClick={() => showToast(`Editando: ${school.escuela}`)}
+                      style={{
+                        background: COLORS.blue, color: "#fff", border: "none", cursor: "pointer",
+                        borderRadius: 6, padding: "6px 12px", fontSize: 12, fontWeight: 600,
+                      }}
+                    >Editar</button>
+                    <button
+                      onClick={() => showToast("Acción de eliminar (simulada)", "error")}
+                      style={{
+                        background: "#fee8e8", color: "#c0392b", border: "none", cursor: "pointer",
+                        borderRadius: 6, padding: "6px 12px", fontSize: 12, fontWeight: 600,
+                      }}
+                    >Eliminar</button>
+                  </div>
                 </div>
-                <div style={{ width: 100 }}>
-                  <ProgressBar pct={school.funded} />
-                  <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 3, textAlign: "center" }}>{school.funded}%</div>
-                </div>
-                {school.urgent && (
-                  <span style={{ background: "#fee8e8", color: "#c0392b", borderRadius: 6, padding: "3px 8px", fontSize: 11, fontWeight: 600 }}>
-                    Urgente
-                  </span>
-                )}
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button
-                    onClick={() => showToast(`Editando: ${school.name}`)}
-                    style={{
-                      background: COLORS.blue, color: "#fff", border: "none", cursor: "pointer",
-                      borderRadius: 6, padding: "6px 12px", fontSize: 12, fontWeight: 600,
-                    }}
-                  >Editar</button>
-                  <button
-                    onClick={() => showToast("Acción de eliminar (simulada)", "error")}
-                    style={{
-                      background: "#fee8e8", color: "#c0392b", border: "none", cursor: "pointer",
-                      borderRadius: 6, padding: "6px 12px", fontSize: 12, fontWeight: 600,
-                    }}
-                  >Eliminar</button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

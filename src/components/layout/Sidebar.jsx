@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { COLORS } from "../../constants/colors";
-import { MUNICIPALITIES, CATEGORIES, TYPES } from "../../data/mockSchools";
+import { MUNICIPALITIES, CATEGORIAS, NIVELES } from "../../data/mockSchools";
 import FilterSection from "../ui/FilterSection";
 
 export default function Sidebar({ filters, setFilters }) {
@@ -14,7 +14,7 @@ export default function Sidebar({ filters, setFilters }) {
   };
 
   const activeCount =
-    filters.municipalities.length + filters.categories.length + filters.types.length;
+    filters.municipios.length + filters.categorias.length + filters.niveles.length;
 
   return (
     <div style={{
@@ -53,7 +53,7 @@ export default function Sidebar({ filters, setFilters }) {
         <div style={{ padding: 16 }}>
           {activeCount > 0 && (
             <button
-              onClick={() => setFilters({ municipalities: [], categories: [], types: [] })}
+              onClick={() => setFilters({ municipios: [], categorias: [], niveles: [] })}
               style={{
                 width: "100%", background: "#fee8e8", border: "1px solid #fbbaba",
                 borderRadius: 8, padding: "7px", cursor: "pointer",
@@ -63,9 +63,9 @@ export default function Sidebar({ filters, setFilters }) {
               ✕ Limpiar {activeCount} filtro{activeCount > 1 ? "s" : ""}
             </button>
           )}
-          <FilterSection title="Municipio" options={MUNICIPALITIES} selected={filters.municipalities} toggle={v => toggle("municipalities", v)} />
-          <FilterSection title="Categoría" options={CATEGORIES} selected={filters.categories} toggle={v => toggle("categories", v)} />
-          <FilterSection title="Tipo de escuela" options={TYPES} selected={filters.types} toggle={v => toggle("types", v)} />
+          <FilterSection title="Municipio" options={MUNICIPALITIES} selected={filters.municipios} toggle={v => toggle("municipios", v)} />
+          <FilterSection title="Categoría de necesidad" options={CATEGORIAS} selected={filters.categorias} toggle={v => toggle("categorias", v)} />
+          <FilterSection title="Nivel educativo" options={NIVELES} selected={filters.niveles} toggle={v => toggle("niveles", v)} />
         </div>
       )}
     </div>

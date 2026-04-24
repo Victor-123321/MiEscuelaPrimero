@@ -89,17 +89,18 @@ function Hero({ stats }) {
 
 // ── CatalogPage ───────────────────────────────────────────────────────────
 export default function CatalogPage() {
-  const [filters, setFilters]           = useState({ municipalities: [], categories: [], types: [] });
+  const [filters, setFilters]           = useState({ municipios: [], categorias: [], niveles: [] });
   const [search, setSearch]             = useState("");
   const [selectedSchool, setSelectedSchool] = useState(null);
   const [showLead, setShowLead]         = useState(false);
 
   const filtered = MOCK_SCHOOLS.filter(s => {
-    if (filters.municipalities.length && !filters.municipalities.includes(s.municipality)) return false;
-    if (filters.categories.length && !filters.categories.includes(s.category)) return false;
-    if (filters.types.length && !filters.types.includes(s.type)) return false;
-    if (search && !s.name.toLowerCase().includes(search.toLowerCase()) &&
-        !s.description.toLowerCase().includes(search.toLowerCase())) return false;
+    if (filters.municipios.length && !filters.municipios.includes(s.municipio)) return false;
+    if (filters.categorias.length && !s.needs.some(n => filters.categorias.includes(n.categoria))) return false;
+    if (filters.niveles.length && !filters.niveles.includes(s.nivel_educativo)) return false;
+    if (search && !s.escuela.toLowerCase().includes(search.toLowerCase()) &&
+        !s.municipio.toLowerCase().includes(search.toLowerCase()) &&
+        !s.needs.some(n => n.propuesta.toLowerCase().includes(search.toLowerCase()))) return false;
     return true;
   });
 
