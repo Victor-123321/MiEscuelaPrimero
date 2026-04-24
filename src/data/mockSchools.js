@@ -6,7 +6,7 @@ export const MOCK_SCHOOLS = [
     type: "Primaria",
     category: "Material Tecnológico",
     description: "Esta escuela necesita computadoras y proyectores para modernizar su aula de cómputo y brindar acceso digital a 280 estudiantes en contexto vulnerable.",
-    image: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&h=240&fit=crop",
+    image: "/schools/school1.jpg",
     needs: [
       { item: "Computadoras para estudiantes", qty: 15, unitCost: 9500, model: "HP ProBook 450 G9" },
       { item: "Proyector con pantalla", qty: 2, unitCost: 8200, model: "Epson PowerLite" },
@@ -24,7 +24,7 @@ export const MOCK_SCHOOLS = [
     type: "Preescolar",
     category: "Mobiliario",
     description: "El mobiliario deteriorado afecta la postura y el bienestar de los más pequeños. Se requieren mesas, sillas y estantes adecuados para preescolar.",
-    image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&h=240&fit=crop",
+    image: "/schools/school2.jpg",
     needs: [
       { item: "Mesas infantiles", qty: 10, unitCost: 1200, model: "Serie Escolar Infantil" },
       { item: "Sillas infantiles", qty: 40, unitCost: 420, model: "Plástico reforzado t/3" },
@@ -42,7 +42,7 @@ export const MOCK_SCHOOLS = [
     type: "Secundaria",
     category: "Infraestructura",
     description: "Tres aulas presentan filtraciones en el techo que interrumpen clases en temporada de lluvias. Urge impermeabilización para proteger a 90 estudiantes.",
-    image: "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&h=240&fit=crop",
+    image: "/schools/school3.jpg",
     needs: [
       { item: "Impermeabilización de techo", qty: 3, unitCost: 22000, model: "Sistema Sika MultiSeal" },
       { item: "Reparación eléctrica", qty: 1, unitCost: 12000, model: "Instalación certificada" },
@@ -59,7 +59,7 @@ export const MOCK_SCHOOLS = [
     type: "Primaria",
     category: "Material Didáctico",
     description: "Falta de materiales didácticos limita el aprendizaje activo. Se buscan juegos educativos, regletas y bloques geométricos para enriquecer las actividades.",
-    image: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=400&h=240&fit=crop",
+    image: "/schools/school4.jpg",
     needs: [
       { item: "Juegos de mesa educativos", qty: 20, unitCost: 350, model: "Loterías, dominó, ajedrez" },
       { item: "Regletas y bloques geométricos", qty: 15, unitCost: 620, model: "Set matemático completo" },
@@ -77,7 +77,7 @@ export const MOCK_SCHOOLS = [
     type: "Primaria",
     category: "Acceso",
     description: "Los caminos de tierra dificultan la asistencia en temporada de lluvias. Bicicletas y mejoras al acceso garantizan que ningún alumno se quede fuera.",
-    image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&h=240&fit=crop",
+    image: "/schools/school5.jpg",
     needs: [
       { item: "Bicicletas para estudiantes", qty: 12, unitCost: 2800, model: "Rodada 24 resistente" },
       { item: "Portabicicletas", qty: 1, unitCost: 4500, model: "Rack metálico 12 lugares" },
@@ -95,7 +95,7 @@ export const MOCK_SCHOOLS = [
     type: "Primaria",
     category: "Material Deportivo",
     description: "La cancha escolar carece de equipamiento básico para educación física. El deporte fortalece la salud y el trabajo en equipo de los 240 estudiantes.",
-    image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=240&fit=crop",
+    image: "/schools/school6.jpg",
     needs: [
       { item: "Balones surtido (futbol, básquet, vóleibol)", qty: 12, unitCost: 380, model: "Mikasa Sports" },
       { item: "Conos y aros de entrenamiento", qty: 30, unitCost: 95, model: "Set entrenamiento" },
@@ -113,7 +113,7 @@ export const MOCK_SCHOOLS = [
     type: "Preescolar",
     category: "Salud",
     description: "La escuela carece de filtros de agua potable y botiquines básicos. Garantizar la salud de los niños es el primer paso para un aprendizaje pleno.",
-    image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=240&fit=crop",
+    image: "/schools/school7.jpg",
     needs: [
       { item: "Filtros de agua potable", qty: 3, unitCost: 3200, model: "Purificador Aquaphor" },
       { item: "Botiquines completos", qty: 4, unitCost: 850, model: "Kit primeros auxilios" },
@@ -131,7 +131,7 @@ export const MOCK_SCHOOLS = [
     type: "Secundaria",
     category: "Formación a Docentes",
     description: "Los docentes solicitan formación en manejo de emociones, disciplina positiva y atención a estudiantes con discapacidad para mejorar su práctica educativa.",
-    image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&h=240&fit=crop",
+    image: "/schools/school8.jpg",
     needs: [
       { item: "Taller: Disciplina positiva", qty: 1, unitCost: 8000, model: "12 hrs — grupo completo" },
       { item: "Taller: Manejo de emociones", qty: 1, unitCost: 6500, model: "8 hrs — grupo completo" },

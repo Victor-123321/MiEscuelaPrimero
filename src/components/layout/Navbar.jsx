@@ -30,12 +30,11 @@ export default function Navbar({ page, setPage, adminUnlocked, setAdminUnlocked 
           background: "none", border: "none", cursor: "pointer",
           display: "flex", alignItems: "center", gap: 10, flexShrink: 0,
         }}>
-          <div style={{
-            width: 34, height: 34, borderRadius: 8,
-            background: COLORS.green,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 17, fontWeight: 900, color: "#fff",
-          }}>M</div>
+          <img
+            src="/logo.svg"
+            alt="Mexicanos Primero Jalisco"
+            style={{ height: 38, width: "auto", display: "block" }}
+          />
           <span style={{
             color: "#fff", fontFamily: "'Georgia', serif",
             fontSize: 16, fontWeight: 700, letterSpacing: "-0.5px",
