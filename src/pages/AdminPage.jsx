@@ -15,7 +15,7 @@ const TABS = [
   { id: "upload",  label: "📤 Carga de Archivo" },
   { id: "leads",   label: "📬 Solicitudes" },
   { id: "schools", label: "🏫 Escuelas" },
-  { id: "stats",   label: "📊 Estadísticas" },
+  // { id: "stats",   label: "📊 Estadísticas" },
   //{ id: "footer",  label: "📝 Footer" },
 ];
 
