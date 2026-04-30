@@ -3,6 +3,7 @@ import ProgressBar from "../ui/ProgressBar";
 
 // Array de IDs reales de Unsplash que son exclusivamente de escuelas/educación
 const SCHOOL_STOCK_IDS = [
+  "photo-1588072432836-e10032774350", "photo-1519406596751-0a3ccc4937fe",
   "photo-1523050335456-c38447d0d96f", "photo-1509062522246-3755977927d7",
   "photo-1497633762265-9d179a990aa6", "photo-1580582932707-520aed937b7b",
   "photo-1541339907198-e08759dfc3ef", "photo-1562774053-701939374585",
