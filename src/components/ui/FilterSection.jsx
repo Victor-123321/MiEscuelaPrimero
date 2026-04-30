@@ -1,9 +1,12 @@
 
 import { useState } from "react";
 import { COLORS } from "../../constants/colors";
-import { MOCK_SCHOOLS } from "../../data/mockSchools";
 
-export default function FilterSection({ title, options, selected, toggle }) {
+/**
+ * counts — optional object { [optionValue]: number } for live school counts.
+ * When omitted, the badge is hidden.
+ */
+export default function FilterSection({ title, options, selected, toggle, counts }) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -50,14 +53,14 @@ export default function FilterSection({ title, options, selected, toggle }) {
                 style={{ display: "none" }}
               />
               {opt}
-              <span style={{
-                marginLeft: "auto", background: "#f0f4fb",
-                borderRadius: 100, padding: "1px 8px", fontSize: 11, color: COLORS.muted,
-              }}>
-                {MOCK_SCHOOLS.filter(s =>
-                  s.municipality === opt || s.category === opt || s.type === opt
-                ).length}
-              </span>
+              {counts && (
+                <span style={{
+                  marginLeft: "auto", background: "#f0f4fb",
+                  borderRadius: 100, padding: "1px 8px", fontSize: 11, color: COLORS.muted,
+                }}>
+                  {counts[opt] ?? 0}
+                </span>
+              )}
             </label>
           ))}
         </div>

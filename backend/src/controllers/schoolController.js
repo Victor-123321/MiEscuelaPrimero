@@ -64,14 +64,15 @@ async function deleteNeed(req, res, next) {
   } catch (err) { return next(err); }
 }
 
-// Returns distinct municipalities and categories for sidebar filters
+// Returns distinct municipalities, levels and categories for sidebar filters
 async function getFilters(req, res, next) {
   try {
-    const [municipalities, categories] = await Promise.all([
-      School.getMunicipalities(),
+    const [municipios, niveles, categorias] = await Promise.all([
+      School.getMunicipios(),
+      School.getNiveles(),
       School.getCategories(),
     ]);
-    return successResponse(res, { municipalities, categories }, 'Filtros obtenidos');
+    return successResponse(res, { municipios, niveles, categorias }, 'Filtros obtenidos');
   } catch (err) { return next(err); }
 }
 

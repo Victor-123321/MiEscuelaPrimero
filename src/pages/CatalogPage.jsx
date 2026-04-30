@@ -53,13 +53,13 @@ function Hero({ stats, usingMock }) {
 }
 
 export default function CatalogPage() {
-  const [filters, setFilters]           = useState({ municipalities: [], categories: [], types: [] });
-  const [search, setSearch]             = useState("");
+  const [filters, setFilters]               = useState({ municipios: [], categorias: [], niveles: [] });
+  const [search, setSearch]                 = useState("");
   const [selectedSchool, setSelectedSchool] = useState(null);
-  const [showLead, setShowLead]         = useState(false);
+  const [showLead, setShowLead]             = useState(false);
 
   const { schools, loading, usingMock: schoolsMock } = useSchools(filters, search);
-  const { stats, usingMock: statsMock }              = useStats();
+  const { stats, usingMock: statsMock }               = useStats();
 
   const openLead = (school = null) => {
     if (school) setSelectedSchool(school);

@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { COLORS } from "../constants/colors";
 import { FOOTER_STEPS } from "../data/mockStats";
-import ProgressBar from "../components/ui/ProgressBar";
 import Toast from "../components/ui/Toast";
+import ProgressBar from "../components/ui/ProgressBar";
 import {
   getStats, updateStat,
   getFooterContent, updateFooterContent,
@@ -26,37 +26,33 @@ const STATUS_LABELS = {
   cancelado:  { label: "Cancelado",  bg: "#fee8e8", color: "#c0392b" },
 };
 
-function normalizeSchool(s) {
-  return { id: s.id, name: s.name, municipality: s.municipality, category: s.category, funded: parseFloat(s.funding_pct ?? 0), urgent: s.urgent ?? false };
-}
-
 export default function AdminPage({ onLogout }) {
   const [activeTab, setActiveTab] = useState("upload");
   const [toast, setToast]         = useState(null);
 
   // Upload
-  const [uploadStatus, setUploadStatus] = useState(null);
-  const [uploadResult, setUploadResult] = useState(null);
+  const [uploadStatus, setUploadStatus]   = useState(null);
+  const [uploadResult, setUploadResult]   = useState(null);
   const [uploadHistory, setUploadHistory] = useState([]);
 
   // Leads
-  const [leads, setLeads]         = useState([]);
+  const [leads, setLeads]               = useState([]);
   const [leadsLoading, setLeadsLoading] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
 
   // Schools
-  const [schools, setSchools]     = useState([]);
+  const [schools, setSchools]               = useState([]);
   const [schoolsLoading, setSchoolsLoading] = useState(false);
 
   // Stats
-  const [rawStats, setRawStats]   = useState([]);
+  const [rawStats, setRawStats]       = useState([]);
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsSaving, setStatsSaving] = useState({});
 
   // Footer
-  const [footerData, setFooterData] = useState(null);
+  const [footerData, setFooterData]       = useState(null);
   const [footerLoading, setFooterLoading] = useState(false);
-  const [footerSaving, setFooterSaving] = useState({});
+  const [footerSaving, setFooterSaving]   = useState({});
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
@@ -79,7 +75,7 @@ export default function AdminPage({ onLogout }) {
   }
   async function loadSchools() {
     setSchoolsLoading(true);
-    try { const { schools: raw } = await listSchools({ limit: 100 }); setSchools(raw.map(normalizeSchool)); }
+    try { const { schools: raw } = await listSchools({ limit: 100 }); setSchools(raw); }
     catch (err) { showToast("Error cargando escuelas: " + err.message, "error"); }
     finally { setSchoolsLoading(false); }
   }
@@ -94,7 +90,7 @@ export default function AdminPage({ onLogout }) {
     try { setFooterData(await getFooterContent()); }
     catch {
       const mock = {};
-      FOOTER_STEPS.forEach((s, i) => { mock["step_" + (i+1) + "_title"] = s.title; mock["step_" + (i+1) + "_description"] = s.desc; });
+      FOOTER_STEPS.forEach((s, i) => { mock["step_" + (i + 1) + "_title"] = s.title; mock["step_" + (i + 1) + "_description"] = s.desc; });
       setFooterData(mock);
     }
     finally { setFooterLoading(false); }
@@ -111,7 +107,7 @@ export default function AdminPage({ onLogout }) {
     try {
       const result = await uploadSchoolsFile(file);
       setUploadResult(result); setUploadStatus("success");
-      showToast("Archivo procesado: " + result.rows_successful + " filas procesadas");
+      showToast(`Archivo procesado: ${result.schools_processed} escuelas · ${result.needs_processed} necesidades`);
       loadUploadHistory();
     } catch (err) { setUploadStatus("error"); showToast("Error: " + err.message, "error"); }
     if (e.target) e.target.value = "";
@@ -132,29 +128,18 @@ export default function AdminPage({ onLogout }) {
   }
 
   async function handleDeleteSchool(school) {
-    if (!confirm('¿Eliminar "' + school.name + '"?')) return;
+    if (!confirm(`¿Eliminar "${school.escuela}"?`)) return;
     try { await deleteSchool(school.id); setSchools(prev => prev.filter(s => s.id !== school.id)); showToast("Escuela eliminada"); }
     catch (err) { showToast("Error: " + err.message, "error"); }
   }
 
   async function handleLeadStatus(lead, status) {
     try {
-      const updated = await updateLeadStatus(lead.id, status);
+      await updateLeadStatus(lead.id, status);
       setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, status } : l));
       if (selectedLead?.id === lead.id) setSelectedLead({ ...selectedLead, status });
       showToast("Estado actualizado ✓");
     } catch (err) { showToast("Error: " + err.message, "error"); }
-  }
-
-  function downloadTemplate() {
-    const header = "Municipio,Escuela,Categoría,Subcategoría,Propuesta,Cantidad,Unidad,Estado,Detalles";
-    const ex     = "Arandas,Francisco Rojas,Material,Pizarrones / pintarrones,Pizarrones,5,Piezas,Aun no cubierto,";
-    const blob   = new Blob([header + "\n" + ex], { type: "text/csv" });
-    const url    = URL.createObjectURL(blob);
-    const a      = document.createElement("a");
-    a.href = url; a.download = "plantilla_necesidades.csv"; a.click();
-    URL.revokeObjectURL(url);
-    showToast("Plantilla descargada");
   }
 
   return (
@@ -196,59 +181,79 @@ export default function AdminPage({ onLogout }) {
             style={{ border: "2px dashed #c8d0e0", borderRadius: 16, padding: "48px", textAlign: "center", background: "#fafbff", transition: "all 0.2s" }}
             onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = COLORS.blue; e.currentTarget.style.background = "#f0f4ff"; }}
             onDragLeave={e => { e.currentTarget.style.borderColor = "#c8d0e0"; e.currentTarget.style.background = "#fafbff"; }}
-            onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor="#c8d0e0"; e.currentTarget.style.background="#fafbff"; const f=e.dataTransfer.files[0]; if(f) handleFileChange({target:{files:[f],value:""}}); }}
+            onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = "#c8d0e0"; e.currentTarget.style.background = "#fafbff"; const f = e.dataTransfer.files[0]; if (f) handleFileChange({ target: { files: [f], value: "" } }); }}
           >
-            <div style={{ fontSize: 48, marginBottom: 12 }}>📁</div>
-            <h3 style={{ fontSize: 20, fontWeight: 700, color: COLORS.text, marginBottom: 8 }}>Carga el Archivo de Necesidades</h3>
-            <p style={{ color: COLORS.muted, marginBottom: 6, fontSize: 14 }}>Arrastra tu archivo Excel (.xlsx) o CSV, o haz clic para seleccionar</p>
-            <p style={{ color: COLORS.muted, fontSize: 12, marginBottom: 24 }}>Formato: <strong>Municipio | Escuela | Categoría | Subcategoría | Propuesta | Cantidad | Unidad | Estado | Detalles</strong></p>
-            <input type="file" accept=".xlsx,.csv" id="fileInput" style={{ display: "none" }} onChange={handleFileChange} />
+            <div style={{ fontSize: 48, marginBottom: 16 }}>📁</div>
+            <h3 style={{ fontSize: 20, fontWeight: 700, color: COLORS.text, marginBottom: 8 }}>
+              Carga el Archivo Maestro
+            </h3>
+            <p style={{ color: COLORS.muted, marginBottom: 6, fontSize: 14 }}>
+              Arrastra tu archivo Excel (.xlsx) o haz clic para seleccionar
+            </p>
+            <p style={{ color: COLORS.muted, fontSize: 12, marginBottom: 24 }}>
+              Formato: archivo <strong>.xlsx</strong> con 2 hojas — <strong>Necesidades</strong> y <strong>Datos de las escuelas</strong>
+            </p>
+            <input type="file" accept=".xlsx,.xls" id="fileInput" style={{ display: "none" }} onChange={handleFileChange} />
             <label htmlFor="fileInput" style={{ display: "inline-block", background: uploadStatus === "processing" ? COLORS.muted : COLORS.blue, color: "#fff", padding: "12px 28px", borderRadius: 10, cursor: uploadStatus === "processing" ? "not-allowed" : "pointer", fontWeight: 700, fontSize: 15, boxShadow: "0 4px 16px rgba(0,74,153,0.3)" }}>
               {uploadStatus === "processing" ? "⏳ Procesando…" : "Seleccionar Archivo"}
             </label>
+
             {uploadStatus === "success" && uploadResult && (
               <div style={{ marginTop: 20, background: "#e8f5e0", border: "1px solid #a8d88a", borderRadius: 10, padding: "14px 20px", textAlign: "left" }}>
                 <div style={{ fontWeight: 700, color: "#2d7a1f", marginBottom: 6 }}>✅ Procesado exitosamente</div>
-                <div style={{ fontSize: 13, color: "#4a7a3a" }}>• {uploadResult.rows_successful} filas procesadas {uploadResult.rows_failed > 0 && `· ${uploadResult.rows_failed} con errores`}</div>
-                {uploadResult.errors?.map((e, i) => <div key={i} style={{ fontSize: 11, color: "#c0392b", marginTop: 3 }}>Fila {e.row}: {e.error}</div>)}
+                <div style={{ fontSize: 13, color: "#4a7a3a" }}>
+                  • {uploadResult.schools_processed ?? 0} escuelas actualizadas
+                  · {uploadResult.needs_processed ?? 0} necesidades reemplazadas
+                  {uploadResult.rows_failed > 0 && ` · ${uploadResult.rows_failed} con errores`}
+                </div>
+                {uploadResult.errors?.slice(0, 5).map((e, i) => (
+                  <div key={i} style={{ fontSize: 11, color: "#c0392b", marginTop: 3 }}>
+                    {e.sheet} fila {e.row}: {e.error}
+                  </div>
+                ))}
               </div>
             )}
             {uploadStatus === "error" && (
               <div style={{ marginTop: 20, background: "#fee8e8", border: "1px solid #f5a0a0", borderRadius: 10, padding: "12px 18px", textAlign: "left" }}>
-                <div style={{ fontWeight: 700, color: "#c0392b" }}>❌ Error al procesar</div>
+                <div style={{ fontWeight: 700, color: "#c0392b" }}>❌ Error al procesar el archivo</div>
               </div>
             )}
           </div>
 
+          {/* Upload history */}
           {uploadHistory.length > 0 && (
             <div style={{ marginTop: 20, background: "#fff", borderRadius: 14, padding: 20, border: "1px solid #e8edf5" }}>
               <h3 style={{ fontSize: 14, fontWeight: 700, color: COLORS.text, marginBottom: 10 }}>Historial de Cargas</h3>
               {uploadHistory.map((h, i) => (
                 <div key={h.id ?? i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: i < uploadHistory.length - 1 ? "1px solid #f0f4fb" : "none", fontSize: 13 }}>
                   <span style={{ fontWeight: 600, color: COLORS.text }}>{h.filename}</span>
-                  <span style={{ color: COLORS.muted }}>{h.rows_successful ?? "?"} filas · {new Date(h.created_at).toLocaleDateString("es-MX")}</span>
+                  <span style={{ color: COLORS.muted }}>
+                    {h.rows_successful ?? "?"} filas · {new Date(h.created_at).toLocaleDateString("es-MX")}
+                  </span>
                 </div>
               ))}
             </div>
           )}
 
-          {/* Format table */}
-          <div style={{ marginTop: 20, background: "#fff", borderRadius: 14, padding: 20, border: "1px solid #e8edf5" }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: COLORS.text, marginBottom: 12 }}>Columnas del Archivo</h3>
-            <div style={{ overflowX: "auto" }}>
+          {/* Format reference */}
+          <div style={{ marginTop: 24, background: "#fff", borderRadius: 16, padding: 24, border: "1px solid #e8edf5" }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: COLORS.text, marginBottom: 16 }}>Formato del Archivo Maestro</h3>
+
+            <h4 style={{ fontSize: 14, fontWeight: 700, color: COLORS.blue, marginBottom: 10 }}>Hoja 1 — Necesidades (datos desde fila 5)</h4>
+            <div style={{ overflowX: "auto", marginBottom: 24 }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-                <thead><tr style={{ background: COLORS.blue }}>{["Columna","Tipo","Ejemplo"].map(h => <th key={h} style={{ color: "#fff", padding: "8px 12px", textAlign: "left" }}>{h}</th>)}</tr></thead>
+                <thead><tr style={{ background: COLORS.blue }}>{["Columna", "Ejemplo", "Notas"].map(h => <th key={h} style={{ color: "#fff", padding: "8px 12px", textAlign: "left" }}>{h}</th>)}</tr></thead>
                 <tbody>
                   {[
-                    ["Municipio",    "Texto",         "Arandas"],
-                    ["Escuela",      "Texto",         "Francisco Rojas"],
-                    ["Categoría",    "Texto",         "Material / Infraestructura / Formación"],
-                    ["Subcategoría", "Texto",         "Pizarrones / pintarrones"],
-                    ["Propuesta",    "Texto",         "Pizarrones"],
-                    ["Cantidad",     "Número",        "5"],
-                    ["Unidad",       "Texto",         "Piezas / Tonelada / Horas"],
-                    ["Estado",       "Texto",         "Cubierto / Aun no cubierto / Cubierto parcialmente"],
-                    ["Detalles",     "Texto (opcional)", "Información adicional"],
+                    ["Municipio",    "Arandas",                       "Municipio de la escuela"],
+                    ["Escuela",      "Francisco Rojas González",       "Debe coincidir con Hoja 2"],
+                    ["Categoría",    "Material",                       "Material · Infraestructura · Formación · Salud"],
+                    ["Subcategoría", "Pizarrones / pintarrones",       "Subcategoría de la necesidad"],
+                    ["Propuesta",    "Pizarrones",                     "Descripción del artículo"],
+                    ["Cantidad",     "5",                              "Número entero"],
+                    ["Unidad",       "Piezas",                         "Piezas · Metros · Paquete · etc."],
+                    ["Estado",       "Cubierto",                       "Cubierto · Aun no cubierto · Cubierto parcialmente"],
+                    ["Detalles",     "Paquetes de 500",                "Opcional"],
                   ].map((row, i) => (
                     <tr key={i} style={{ background: i % 2 === 0 ? "#fff" : "#f8faff" }}>
                       {row.map((cell, j) => <td key={j} style={{ padding: "8px 12px", borderBottom: "1px solid #e8edf5", fontFamily: j === 0 ? "monospace" : "inherit", color: j === 0 ? COLORS.blue : COLORS.text }}>{cell}</td>)}
@@ -257,9 +262,33 @@ export default function AdminPage({ onLogout }) {
                 </tbody>
               </table>
             </div>
-            <button onClick={downloadTemplate} style={{ marginTop: 12, background: "#f0f4fb", border: "1px solid #dde3f0", borderRadius: 8, padding: "9px 18px", cursor: "pointer", fontSize: 12, fontWeight: 600, color: COLORS.blue }}>
-              📥 Descargar Plantilla CSV
-            </button>
+
+            <h4 style={{ fontSize: 14, fontWeight: 700, color: COLORS.blue, marginBottom: 10 }}>Hoja 2 — Datos de las escuelas (datos desde fila 6)</h4>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+                <thead><tr style={{ background: COLORS.blue }}>{["Columna", "Ejemplo", "Notas"].map(h => <th key={h} style={{ color: "#fff", padding: "8px 12px", textAlign: "left" }}>{h}</th>)}</tr></thead>
+                <tbody>
+                  {[
+                    ["Municipio",        "Arandas",                       "✅ Requerido"],
+                    ["Plantel",          "Francisco Rojas González",       "Nombre del plantel"],
+                    ["Escuela",          "Francisco Rojas González",       "✅ Requerido (clave única con municipio)"],
+                    ["Personal escolar", "6",                              "Número entero"],
+                    ["Estudiantes",      "119",                            "Número entero"],
+                    ["Nivel ed.",        "Primaria",                       "Primaria · Secundaria · Preescolar"],
+                    ["CCT",              "14EPR1614C",                     "Clave de centro de trabajo"],
+                    ["Modalidad",        "SEP-Multigrado",                 "SEP-General · SEP-Multigrado · CONAFE"],
+                    ["Turno",            "Matutino",                       "Matutino · Vespertino"],
+                    ["Sostenimiento",    "Estatal",                        "Federal · Estatal · Federalizado"],
+                    ["Dirección",        "Llano Grande, CP 47198",         "Dirección física"],
+                    ["Ubicación",        "https://maps.app.goo.gl/...",    "Enlace a Google Maps"],
+                  ].map((row, i) => (
+                    <tr key={i} style={{ background: i % 2 === 0 ? "#fff" : "#f8faff" }}>
+                      {row.map((cell, j) => <td key={j} style={{ padding: "8px 12px", borderBottom: "1px solid #e8edf5", fontFamily: j === 0 ? "monospace" : "inherit", color: j === 0 ? COLORS.blue : COLORS.text }}>{cell}</td>)}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -289,8 +318,8 @@ export default function AdminPage({ onLogout }) {
                     }}>
                       <div>
                         <div style={{ fontWeight: 700, fontSize: 14, color: COLORS.text }}>{lead.nombre_completo}</div>
-                        <div style={{ fontSize: 12, color: COLORS.muted }}>{lead.email} · {lead.tipo_donativo?.replace(/_/g," ")}</div>
-                        <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 2 }}>{new Date(lead.created_at).toLocaleDateString("es-MX", { day:"2-digit", month:"short", year:"numeric" })}</div>
+                        <div style={{ fontSize: 12, color: COLORS.muted }}>{lead.email} · {lead.tipo_donativo?.replace(/_/g, " ")}</div>
+                        <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 2 }}>{new Date(lead.created_at).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })}</div>
                       </div>
                       <span style={{ ...st, borderRadius: 6, padding: "3px 9px", fontSize: 11, fontWeight: 600 }}>{st.label}</span>
                     </div>
@@ -300,29 +329,27 @@ export default function AdminPage({ onLogout }) {
             )}
           </div>
 
-          {/* Lead detail panel */}
           {selectedLead && (
             <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8edf5", padding: 20, position: "sticky", top: 80, alignSelf: "start", maxHeight: "80vh", overflowY: "auto" }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
                 <h4 style={{ fontSize: 15, fontWeight: 800, color: COLORS.text, margin: 0 }}>Detalle de solicitud</h4>
                 <button onClick={() => setSelectedLead(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: COLORS.muted }}>✕</button>
               </div>
-
               {[
                 ["Nombre",       selectedLead.nombre_completo],
                 ["Email",        selectedLead.email],
                 ["Celular",      selectedLead.celular],
                 ["Municipio",    selectedLead.municipio_estado],
-                ["Instancia",    selectedLead.tipo_instancia?.replace(/_/g," ")],
+                ["Instancia",    selectedLead.tipo_instancia?.replace(/_/g, " ")],
                 ["Organización", selectedLead.nombre_instancia],
-                ["Donativo",     selectedLead.tipo_donativo?.replace(/_/g," ")],
+                ["Donativo",     selectedLead.tipo_donativo?.replace(/_/g, " ")],
                 ["Escuela(s)",   selectedLead.escuelas_destino ? (typeof selectedLead.escuelas_destino === "string" ? JSON.parse(selectedLead.escuelas_destino) : selectedLead.escuelas_destino).join(", ") : ""],
                 ["Tema",         selectedLead.tema_formacion],
                 ["Público",      selectedLead.publico_dirigido],
                 ["Horas",        selectedLead.num_horas_sesiones],
                 ["Artículo",     selectedLead.articulo_donar],
                 ["Cantidad",     selectedLead.cantidad_articulos],
-                ["Entrega",      selectedLead.opcion_flete?.replace(/_/g," ")],
+                ["Entrega",      selectedLead.opcion_flete?.replace(/_/g, " ")],
                 ["Dirección",    selectedLead.direccion_recoleccion],
                 ["Descripción",  selectedLead.descripcion_apoyo],
               ].filter(([, v]) => v).map(([label, value]) => (
@@ -331,7 +358,6 @@ export default function AdminPage({ onLogout }) {
                   <span style={{ color: COLORS.text, wordBreak: "break-word" }}>{String(value)}</span>
                 </div>
               ))}
-
               <div style={{ marginTop: 16 }}>
                 <p style={{ fontSize: 12, fontWeight: 600, color: COLORS.muted, marginBottom: 8 }}>Cambiar estado:</p>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -353,27 +379,33 @@ export default function AdminPage({ onLogout }) {
       {/* ── Schools ───────────────────────────────────────── */}
       {activeTab === "schools" && (
         <div>
-          <h3 style={{ fontSize: 17, fontWeight: 700, color: COLORS.text, marginBottom: 16 }}>Escuelas registradas {!schoolsLoading && `(${schools.length})`}</h3>
+          <h3 style={{ fontSize: 17, fontWeight: 700, color: COLORS.text, marginBottom: 16 }}>
+            Escuelas registradas {!schoolsLoading && `(${schools.length})`}
+          </h3>
           {schoolsLoading ? (
             <div style={{ textAlign: "center", padding: 40, color: COLORS.muted }}>⏳ Cargando…</div>
           ) : (
             <div style={{ border: "1px solid #e8edf5", borderRadius: 12, overflow: "hidden" }}>
               {schools.length === 0
                 ? <div style={{ padding: 32, textAlign: "center", color: COLORS.muted }}>No hay escuelas. Sube un archivo para comenzar.</div>
-                : schools.map((school, i) => (
-                  <div key={school.id} style={{ display: "grid", gridTemplateColumns: "1fr auto auto auto", gap: 14, padding: "14px 18px", alignItems: "center", borderBottom: i < schools.length - 1 ? "1px solid #e8edf5" : "none", background: i % 2 === 0 ? "#fff" : "#fafbff" }}>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 14, color: COLORS.text }}>{school.name}</div>
-                      <div style={{ fontSize: 12, color: COLORS.muted }}>{school.municipality}</div>
+                : schools.map((school, i) => {
+                  const funded = school.funding_pct ?? 0;
+                  return (
+                    <div key={school.id} style={{ display: "grid", gridTemplateColumns: "1fr 100px auto auto", gap: 14, padding: "14px 18px", alignItems: "center", borderBottom: i < schools.length - 1 ? "1px solid #e8edf5" : "none", background: i % 2 === 0 ? "#fff" : "#fafbff" }}>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 14, color: COLORS.text }}>{school.escuela}</div>
+                        <div style={{ fontSize: 12, color: COLORS.muted }}>{school.municipio} · {school.nivel_educativo}</div>
+                      </div>
+                      <div>
+                        <ProgressBar pct={funded} />
+                        <div style={{ fontSize: 10, color: COLORS.muted, marginTop: 2, textAlign: "center" }}>{funded}%</div>
+                      </div>
+                      {school.urgent && <span style={{ background: "#fee8e8", color: "#c0392b", borderRadius: 5, padding: "2px 7px", fontSize: 10, fontWeight: 600 }}>Urgente</span>}
+                      <button onClick={() => handleDeleteSchool(school)} style={{ background: "#fee8e8", color: "#c0392b", border: "none", cursor: "pointer", borderRadius: 6, padding: "5px 11px", fontSize: 11, fontWeight: 600 }}>Eliminar</button>
                     </div>
-                    <div style={{ width: 90 }}>
-                      <ProgressBar pct={school.funded} />
-                      <div style={{ fontSize: 10, color: COLORS.muted, marginTop: 2, textAlign: "center" }}>{school.funded}%</div>
-                    </div>
-                    {school.urgent && <span style={{ background: "#fee8e8", color: "#c0392b", borderRadius: 5, padding: "2px 7px", fontSize: 10, fontWeight: 600 }}>Urgente</span>}
-                    <button onClick={() => handleDeleteSchool(school)} style={{ background: "#fee8e8", color: "#c0392b", border: "none", cursor: "pointer", borderRadius: 6, padding: "5px 11px", fontSize: 11, fontWeight: 600 }}>Eliminar</button>
-                  </div>
-                ))}
+                  );
+                })
+              }
             </div>
           )}
         </div>
@@ -407,7 +439,7 @@ export default function AdminPage({ onLogout }) {
                     <FooterField key={key} fieldKey={key} value={value} saving={footerSaving[key]} onSave={handleSaveFooterKey} />
                   ))}
                 </div>
-              : <p style={{ color: COLORS.muted }}>No se pudo cargar.</p>
+              : <p style={{ color: COLORS.muted }}>No se pudo cargar el contenido del footer.</p>
           }
         </div>
       )}

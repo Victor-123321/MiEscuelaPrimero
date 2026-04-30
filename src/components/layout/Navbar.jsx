@@ -18,7 +18,7 @@ export default function Navbar({ page, setPage, adminUnlocked, setAdminUnlocked 
     <nav style={{
       position: "sticky", top: 0, zIndex: 1000,
       background: COLORS.blue,
-      boxShadow: "0 2px 20px rgba(0,74,153,0.4)",
+      boxShadow: "0 2px 20px rgba(28,54,97,0.4)",
     }}>
       <div style={{
         maxWidth: 1200, margin: "0 auto", padding: "0 20px",
@@ -30,14 +30,13 @@ export default function Navbar({ page, setPage, adminUnlocked, setAdminUnlocked 
           background: "none", border: "none", cursor: "pointer",
           display: "flex", alignItems: "center", gap: 10, flexShrink: 0,
         }}>
-          <div style={{
-            width: 34, height: 34, borderRadius: 8,
-            background: COLORS.green,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 17, fontWeight: 900, color: "#fff",
-          }}>M</div>
+          <img
+            src="/logo.svg"
+            alt="Mexicanos Primero Jalisco"
+            style={{ height: 48, width: "auto", display: "block" }}
+          />
           <span style={{
-            color: "#fff", fontFamily: "'Georgia', serif",
+            color: "#fff", fontFamily: "'Montserrat', sans-serif",
             fontSize: 16, fontWeight: 700, letterSpacing: "-0.5px",
           }}>
             Mi Escuela <span style={{ color: COLORS.greenLight }}>Primero</span>

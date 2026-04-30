@@ -1,144 +1,221 @@
 'use strict';
 
-const Papa = require('papaparse');
 const XLSX = require('xlsx');
-const { query } = require('../config/database');
 const School = require('../models/School');
 const FileUploadLog = require('../models/FileUploadLog');
 const AuditLog = require('../models/AuditLog');
 const { AppError } = require('../middleware/errorHandler');
-const MESSAGES = require('../utils/errorMessages');
 const logger = require('../utils/logger');
 
-// ── Excel column names (case-insensitive) ─────────────────────────────────
-// Expected: Municipio | Escuela | Categoría | Subcategoría | Propuesta | Cantidad | Unidad | Estado | Detalles
-const COL = {
-  municipio:    ['municipio'],
-  escuela:      ['escuela', 'nombre_escuela', 'school_name'],
-  categoria:    ['categoria', 'categoría', 'category'],
-  subcategoria: ['subcategoria', 'subcategoría', 'subcategory'],
-  propuesta:    ['propuesta', 'proposal', 'articulo'],
-  cantidad:     ['cantidad', 'quantity'],
-  unidad:       ['unidad', 'unit'],
-  estado:       ['estado', 'status', 'state'],
-  detalles:     ['detalles', 'details', 'descripcion', 'descripción'],
-};
+/**
+ * Parse Sheet 2 ("Datos de las escuelas") from the workbook.
+ * Row layout (0-based):
+ *   Row 0-1: title/header rows
+ *   Row 2: "CICLO 2025-2026"
+ *   Row 3: empty
+ *   Row 4: column headers  →  slice(5) starts data at row index 5
+ *
+ * Column positions (0-based):
+ *   [0]=sequence#  [1]=Municipio  [2]=Plantel  [3]=Escuela  [4]=Personal escolar
+ *   [5]=Estudiantes  [6]=Nivel ed.  [7]=CCT  [8]=Modalidad  [9]=Turno
+ *   [10]=Sostenimiento  [11]=Dirección  [12]=Ubicación
+ */
+function parseEscuelasSheet(workbook) {
+  const sheet = workbook.Sheets['Datos de las escuelas'];
+  if (!sheet) throw new AppError('El archivo no contiene la hoja "Datos de las escuelas".', 400);
 
-function getCol(row, aliases) {
-  for (const alias of aliases) {
-    const key = Object.keys(row).find(k => k.toLowerCase().trim() === alias);
-    if (key !== undefined) return String(row[key] ?? '').trim();
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+  const dataRows = rows.slice(5); // data starts at index 5
+
+  const schools = [];
+  for (const row of dataRows) {
+    const municipio = String(row[1] || '').trim();
+    if (!municipio) continue;
+
+    schools.push({
+      municipio,
+      plantel:          String(row[2]  || '').trim() || null,
+      escuela:          String(row[3]  || '').trim(),
+      personal_escolar: parseInt(row[4],  10) || null,
+      estudiantes:      parseInt(row[5],  10) || null,
+      nivel_educativo:  String(row[6]  || '').trim() || null,
+      cct:              String(row[7]  || '').trim() || null,
+      modalidad:        String(row[8]  || '').trim() || null,
+      turno:            String(row[9]  || '').trim() || null,
+      sostenimiento:    String(row[10] || '').trim() || null,
+      direccion:        String(row[11] || '').trim() || null,
+      ubicacion:        String(row[12] || '').trim() || null,
+    });
   }
-  return '';
+  return schools;
 }
 
-function parseCSV(buffer) {
-  const text = buffer.toString('utf8');
-  const { data, errors } = Papa.parse(text, { header: true, skipEmptyLines: true });
-  if (errors.length) logger.warn('CSV parse warnings', { count: errors.length });
-  return data;
+/**
+ * Parse Sheet 1 ("Necesidades") from the workbook.
+ * Row layout (0-based):
+ *   Row 0: empty
+ *   Row 1: "NECESIDADES DE ESCUELAS"
+ *   Row 2: empty
+ *   Row 3: column headers  →  slice(4) starts data at row index 4
+ *
+ * NOTE: The sheet's !ref starts at column B (B1:K1084), so xlsx's sheet_to_json
+ * returns range-relative 0-based arrays where index 0 = column B:
+ *   [0]=Municipio  [1]=Escuela  [2]=Categoría  [3]=Subcategoría
+ *   [4]=Propuesta  [5]=Cantidad  [6]=Unidad  [7]=Estado  [8]=Detalles
+ */
+function parseNecesidadesSheet(workbook) {
+  const sheet = workbook.Sheets['Necesidades'];
+  if (!sheet) throw new AppError('El archivo no contiene la hoja "Necesidades".', 400);
+
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+  const dataRows = rows.slice(4); // data starts at index 4
+
+  const needs = [];
+  for (const row of dataRows) {
+    // col[0] is Municipio (sheet range B1:K1084 → index 0 = column B)
+    const municipio = String(row[0] || '').trim();
+    if (!municipio) continue;
+
+    needs.push({
+      municipio,
+      escuela:      String(row[1] || '').trim(),
+      categoria:    String(row[2] || '').trim(),
+      subcategoria: String(row[3] || '').trim() || null,
+      propuesta:    String(row[4] || '').trim(),
+      cantidad:     parseInt(row[5], 10) || null,
+      unidad:       String(row[6] || '').trim() || null,
+      estado:       String(row[7] || '').trim() || 'Aun no cubierto',
+      detalles:     String(row[8] || '').trim() || null,
+    });
+  }
+  return needs;
 }
 
-function parseXLSX(buffer) {
-  const workbook = XLSX.read(buffer, { type: 'buffer' });
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  return XLSX.utils.sheet_to_json(sheet, { defval: '' });
+/** Normalize a school name for fuzzy comparison: remove accents + lowercase */
+function normalize(str) {
+  return str
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .trim();
 }
 
-async function findOrCreateSchool(name, municipality) {
-  const rows = await query(
-    'SELECT id FROM schools WHERE name = ? AND municipality = ? AND status = "active" LIMIT 1',
-    [name, municipality]
-  );
-  if (rows.length) return rows[0].id;
+/**
+ * Match a need's escuela value to a school ID from the schoolMap.
+ * Steps (in order):
+ *   1. Exact match (original string)
+ *   2. Accent-insensitive exact match
+ *   3. Prefix match (handles abbreviated Excel names like "La Reserva" → "La Reserva (Pre)")
+ *      — if multiple schools match the same prefix we pick the best (longest key match)
+ */
+function matchSchool(schoolMap, needEscuela) {
+  // 1. Exact
+  if (schoolMap[needEscuela]) return schoolMap[needEscuela];
 
-  const result = await query(
-    'INSERT INTO schools (name, municipality, status) VALUES (?, ?, "active")',
-    [name, municipality]
-  );
-  return result.insertId;
+  const normNeed = normalize(needEscuela);
+
+  // 2. Accent-insensitive exact
+  for (const [k, v] of Object.entries(schoolMap)) {
+    if (normalize(k) === normNeed) return v;
+  }
+
+  // 3. Prefix / substring — pick the school whose normalized key best (longest) matches
+  let bestKey = null, bestLen = 0;
+  for (const [k] of Object.entries(schoolMap)) {
+    const normK = normalize(k);
+    if (normK.startsWith(normNeed) || normNeed.startsWith(normK)) {
+      if (normK.length > bestLen) { bestKey = k; bestLen = normK.length; }
+    }
+  }
+  if (bestKey) return schoolMap[bestKey];
+
+  return null;
 }
 
 async function processUpload(file, adminContext) {
   const { originalname, buffer, mimetype, size } = file;
 
+  // Only accept XLSX/XLS
+  const isXlsx = originalname.endsWith('.xlsx') || originalname.endsWith('.xls') ||
+    mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+    mimetype === 'application/vnd.ms-excel';
+
+  if (!isXlsx) {
+    throw new AppError('El formato debe ser XLSX con 2 hojas: "Necesidades" y "Datos de las escuelas".', 400);
+  }
+
+  // Create upload log entry
   const log = await FileUploadLog.create({
     filename: originalname,
     fileSize: size,
     uploadBy: adminContext.userId,
   });
 
-  let rows = [];
+  let schoolsProcessed = 0;
+  let needsProcessed = 0;
+  let failed = 0;
+  const errors = [];
+
   try {
     await FileUploadLog.update(log.id, { status: 'processing', rowsProcessed: 0, rowsSuccessful: 0, rowsFailed: 0 });
 
-    if (originalname.endsWith('.csv') || mimetype === 'text/csv') {
-      rows = parseCSV(buffer);
-    } else if (originalname.endsWith('.xlsx') || originalname.endsWith('.xls')) {
-      rows = parseXLSX(buffer);
-    } else {
-      throw new AppError(MESSAGES.UPLOAD.INVALID_FORMAT, 400);
-    }
+    const workbook = XLSX.read(buffer, { type: 'buffer' });
 
-    if (!rows.length) throw new AppError('El archivo está vacío.', 400);
+    // --- Pass 1: upsert schools from Sheet 2 ---
+    const escuelasData = parseEscuelasSheet(workbook);
+    const schoolMap = {}; // escuela name → school id
 
-    let successful = 0;
-    let failed = 0;
-    const errors = [];
-
-    // Cache school ids to avoid duplicate lookups
-    const schoolCache = {};
-
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
+    for (let i = 0; i < escuelasData.length; i++) {
+      const schoolData = escuelasData[i];
       try {
-        const municipio    = getCol(row, COL.municipio);
-        const escuela      = getCol(row, COL.escuela);
-        const categoria    = getCol(row, COL.categoria);
-        const subcategoria = getCol(row, COL.subcategoria);
-        const propuesta    = getCol(row, COL.propuesta);
-        const cantidadStr  = getCol(row, COL.cantidad);
-        const unidad       = getCol(row, COL.unidad);
-        const estado       = getCol(row, COL.estado);
-        const detalles     = getCol(row, COL.detalles);
-
-        if (!municipio || !escuela) {
-          throw new Error('Municipio y Escuela son requeridos.');
+        if (!schoolData.escuela || !schoolData.municipio) {
+          throw new Error('Escuela y municipio son requeridos.');
         }
-
-        const cacheKey = `${municipio.toLowerCase()}|||${escuela.toLowerCase()}`;
-        if (!schoolCache[cacheKey]) {
-          schoolCache[cacheKey] = await findOrCreateSchool(escuela, municipio);
-        }
-        const schoolId = schoolCache[cacheKey];
-
-        const cantidad = cantidadStr !== '' ? parseFloat(cantidadStr) : null;
-
-        await query(
-          `INSERT INTO school_needs (school_id, categoria, subcategoria, propuesta, cantidad, unidad, estado, detalles)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            schoolId,
-            categoria || null,
-            subcategoria || null,
-            propuesta || null,
-            isNaN(cantidad) ? null : cantidad,
-            unidad || null,
-            estado || null,
-            detalles || null,
-          ]
-        );
-        successful++;
+        const id = await School.upsertByEscuela(schoolData);
+        schoolMap[schoolData.escuela] = id;
+        schoolsProcessed++;
       } catch (err) {
         failed++;
-        errors.push({ row: i + 2, error: err.message });
-        logger.warn(`Upload row ${i + 2} failed`, { error: err.message });
+        errors.push({ sheet: 'Datos de las escuelas', row: i + 6, error: err.message });
+        logger.warn(`Upload escuela row ${i + 6} failed`, { error: err.message });
       }
     }
 
+    // --- Pass 2: replace needs from Sheet 1 ---
+    const necesidadesData = parseNecesidadesSheet(workbook);
+
+    // Group needs by school id
+    const needsByEscuela = {};
+    for (const need of necesidadesData) {
+      const schoolId = matchSchool(schoolMap, need.escuela);
+      if (!schoolId) {
+        failed++;
+        errors.push({ sheet: 'Necesidades', escuela: need.escuela, error: 'No se encontró la escuela correspondiente.' });
+        logger.warn(`Upload need: school not found for "${need.escuela}"`);
+        continue;
+      }
+      if (!needsByEscuela[schoolId]) needsByEscuela[schoolId] = [];
+      needsByEscuela[schoolId].push(need);
+    }
+
+    // Replace needs per school
+    for (const [schoolId, needs] of Object.entries(needsByEscuela)) {
+      try {
+        await School.replaceNeeds(parseInt(schoolId, 10), needs);
+        needsProcessed += needs.length;
+      } catch (err) {
+        failed++;
+        errors.push({ sheet: 'Necesidades', school_id: schoolId, error: err.message });
+        logger.warn(`Upload replaceNeeds failed for school ${schoolId}`, { error: err.message });
+      }
+    }
+
+    const totalRows = escuelasData.length + necesidadesData.length;
+    const successful = schoolsProcessed + needsProcessed;
+
     await FileUploadLog.update(log.id, {
       status: 'completed',
-      rowsProcessed: rows.length,
+      rowsProcessed: totalRows,
       rowsSuccessful: successful,
       rowsFailed: failed,
     });
@@ -148,7 +225,7 @@ async function processUpload(file, adminContext) {
       action: 'upload_file',
       entityType: 'file_upload',
       entityId: log.id,
-      changes: { filename: originalname, rows: rows.length, successful, failed },
+      changes: { filename: originalname, schools: schoolsProcessed, needs: needsProcessed, failed },
       ipAddress: adminContext.ip,
       userAgent: adminContext.userAgent,
     });
@@ -156,17 +233,17 @@ async function processUpload(file, adminContext) {
     return {
       upload_id: log.id,
       filename: originalname,
-      rows_processed: rows.length,
-      rows_successful: successful,
+      schools_processed: schoolsProcessed,
+      needs_processed: needsProcessed,
       rows_failed: failed,
       errors,
     };
   } catch (err) {
     await FileUploadLog.update(log.id, {
       status: 'failed',
-      rowsProcessed: rows.length,
+      rowsProcessed: 0,
       rowsSuccessful: 0,
-      rowsFailed: rows.length,
+      rowsFailed: 0,
       errorMessage: err.message,
     });
     throw err;

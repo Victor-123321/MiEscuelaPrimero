@@ -2,13 +2,13 @@ import { COLORS } from "../../constants/colors";
 import ProgressBar from "../ui/ProgressBar";
 
 const ESTADO_STYLE = {
-  "Cubierto":              { bg: "#e8f5e0", color: "#2d7a1f", icon: "✅" },
-  "Cubierto parcialmente": { bg: "#fff3e0", color: "#b35c00", icon: "⚠️" },
-  "Aun no cubierto":       { bg: "#fee8e8", color: "#c0392b", icon: "❌" },
+  "Cubierto":              { background: "#e8f5e0", color: "#2d7a1f", icon: "✅" },
+  "Cubierto parcialmente": { background: "#fff3e0", color: "#b35c00", icon: "⚠️" },
+  "Aun no cubierto":       { background: "#fee8e8", color: "#c0392b", icon: "❌" },
 };
 
+// Groups needs by category then subcategory for a clean hierarchical table
 function NeedsTable({ needs }) {
-  // Group by categoria
   const grouped = needs.reduce((acc, n) => {
     const cat = n.categoria || "Sin categoría";
     if (!acc[cat]) acc[cat] = {};
@@ -37,7 +37,7 @@ function NeedsTable({ needs }) {
                 </div>
               )}
               {items.map((n, i) => {
-                const estStyle = ESTADO_STYLE[n.estado] ?? { bg: "#f0f4fb", color: COLORS.muted, icon: "•" };
+                const estStyle = ESTADO_STYLE[n.estado] ?? { background: "#f0f4fb", color: COLORS.muted, icon: "•" };
                 return (
                   <div key={n.id ?? i} style={{
                     display: "grid", gridTemplateColumns: "1fr auto auto",
@@ -52,9 +52,7 @@ function NeedsTable({ needs }) {
                     <div style={{ textAlign: "center", minWidth: 60 }}>
                       {n.cantidad != null && n.cantidad !== 0 && (
                         <>
-                          <div style={{ fontWeight: 700, color: COLORS.blue, fontSize: 14 }}>
-                            {Number.isInteger(n.cantidad) ? n.cantidad : n.cantidad.toLocaleString()}
-                          </div>
+                          <div style={{ fontWeight: 700, color: COLORS.blue, fontSize: 14 }}>{n.cantidad}</div>
                           <div style={{ fontSize: 10, color: COLORS.muted }}>{n.unidad}</div>
                         </>
                       )}
@@ -79,10 +77,15 @@ function NeedsTable({ needs }) {
 }
 
 export default function SchoolDetail({ school, onClose, onContact }) {
-  const totalNeeds  = school.needs.length;
-  const cubiertos   = school.needs.filter(n => n.estado === "Cubierto").length;
-  const pendientes  = school.needs.filter(n => n.estado === "Aun no cubierto").length;
-  const categories  = school.categories?.length ? school.categories : school.category ? [school.category] : [];
+  const total      = school.needs.length;
+  const cubiertos  = school.needs.filter(n => n.estado === "Cubierto").length;
+  const pendientes = school.needs.filter(n => n.estado === "Aun no cubierto").length;
+  const score      = school.needs.reduce((s, n) => s + (n.estado === 'Cubierto' ? 1 : n.estado === 'Cubierto parcialmente' ? 0.5 : 0), 0);
+  const pct        = total > 0 ? Math.round((score / total) * 100) : 0;
+
+  const catCount = {};
+  school.needs.forEach(n => { catCount[n.categoria] = (catCount[n.categoria] || 0) + 1; });
+  const primaryCat = Object.entries(catCount).sort((a, b) => b[1] - a[1])[0]?.[0] || '';
 
   return (
     <div
@@ -99,47 +102,66 @@ export default function SchoolDetail({ school, onClose, onContact }) {
         boxShadow: "0 24px 80px rgba(0,0,0,0.3)",
         maxHeight: "92vh", overflowY: "auto",
       }}>
-        {/* Hero */}
-        <div style={{ position: "relative", background: `linear-gradient(135deg, ${COLORS.blueDark}, ${COLORS.blue})`, borderRadius: "18px 18px 0 0", minHeight: 140, display: "flex", alignItems: "flex-end" }}>
-          {school.image && (
-            <img src={school.image} alt={school.name} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", borderRadius: "18px 18px 0 0", opacity: 0.4 }} />
-          )}
+        {/* Hero image */}
+        <div style={{ position: "relative" }}>
+          {school.image
+            ? <img src={school.image} alt={school.escuela} style={{ width: "100%", height: 200, objectFit: "cover", display: "block", borderRadius: "18px 18px 0 0" }} />
+            : <div style={{ width: "100%", height: 200, background: `linear-gradient(135deg, ${COLORS.blueDark}, ${COLORS.blue})`, borderRadius: "18px 18px 0 0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 64 }}>🏫</div>
+          }
           <button onClick={onClose} style={{
             position: "absolute", top: 14, right: 14,
             background: "rgba(0,0,0,0.5)", border: "none", cursor: "pointer",
             borderRadius: "50%", width: 34, height: 34, color: "#fff", fontSize: 16,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            zIndex: 2,
+            display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2,
           }}>✕</button>
-          <div style={{ padding: "20px 20px 16px", position: "relative", zIndex: 1, width: "100%", boxSizing: "border-box" }}>
-            <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 8 }}>
-              {categories.map(c => (
-                <span key={c} style={{ background: COLORS.green, color: "#fff", borderRadius: 5, padding: "2px 9px", fontSize: 11, fontWeight: 700 }}>{c}</span>
-              ))}
-              <span style={{ background: "rgba(255,255,255,0.2)", color: "#fff", borderRadius: 5, padding: "2px 9px", fontSize: 11, fontWeight: 600 }}>{school.municipality}</span>
-              {school.type && <span style={{ background: "rgba(255,255,255,0.15)", color: "#fff", borderRadius: 5, padding: "2px 9px", fontSize: 11 }}>{school.type}</span>}
-              {school.urgent && <span style={{ background: "#e05c5c", color: "#fff", borderRadius: 5, padding: "2px 9px", fontSize: 11, fontWeight: 700 }}>🔥 Urgente</span>}
+          <div style={{
+            position: "absolute", bottom: 0, left: 0, right: 0,
+            background: "linear-gradient(transparent, rgba(0,0,0,0.75))",
+            padding: "24px 20px 16px",
+          }}>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {primaryCat && <span style={{ background: COLORS.blue, color: "#fff", borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 600 }}>{primaryCat}</span>}
+              <span style={{ background: "rgba(255,255,255,0.2)", color: "#fff", borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 600 }}>{school.municipio}</span>
+              <span style={{ background: "rgba(255,255,255,0.2)", color: "#fff", borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 600 }}>{school.nivel_educativo}</span>
+              {school.urgent && <span style={{ background: "#e05c5c", color: "#fff", borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>🔥 Urgente</span>}
             </div>
-            <h2 style={{ color: "#fff", fontSize: "clamp(18px,3vw,22px)", fontWeight: 800, margin: 0 }}>{school.name}</h2>
           </div>
         </div>
 
         <div style={{ padding: "20px 20px 24px" }}>
-          {school.description && (
-            <p style={{ color: COLORS.muted, lineHeight: 1.6, marginBottom: 18, fontSize: 14 }}>{school.description}</p>
+          <h2 style={{ color: COLORS.text, fontSize: "clamp(18px,3vw,22px)", fontWeight: 800, marginBottom: 8 }}>
+            {school.escuela}
+          </h2>
+
+          {/* Metadata pills */}
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+            {[school.cct, school.modalidad, school.turno, school.sostenimiento].filter(Boolean).map(m => (
+              <span key={m} style={{ background: "#f0f4fb", color: COLORS.muted, borderRadius: 6, padding: "3px 9px", fontSize: 11, fontWeight: 600 }}>{m}</span>
+            ))}
+          </div>
+
+          <p style={{ color: COLORS.muted, lineHeight: 1.6, marginBottom: 4, fontSize: 13 }}>
+            📍 {school.direccion}
+          </p>
+          {school.ubicacion && (
+            <a href={school.ubicacion} target="_blank" rel="noopener noreferrer"
+              style={{ fontSize: 13, color: COLORS.blue, fontWeight: 600, display: "inline-block", marginBottom: 20 }}
+            >
+              Ver en mapa →
+            </a>
           )}
 
           {/* Stats row */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8, marginBottom: 18 }}>
             {[
-              { label: "Alumnos",    val: school.students, icon: "👩‍🎓" },
-              { label: "Docentes",   val: school.teachers, icon: "👨‍🏫" },
-              { label: "Cubiertos",  val: cubiertos,        icon: "✅" },
-              { label: "Pendientes", val: pendientes,       icon: "❌" },
+              { label: "Estudiantes",  val: school.estudiantes,      icon: "👩‍🎓" },
+              { label: "Personal",     val: school.personal_escolar, icon: "👨‍🏫" },
+              { label: "Cubiertos",    val: cubiertos,               icon: "✅" },
+              { label: "Pendientes",   val: pendientes,              icon: "❌" },
             ].map(s => (
               <div key={s.label} style={{ background: "#f4f6f9", borderRadius: 10, padding: "10px 6px", textAlign: "center" }}>
                 <div style={{ fontSize: 18, marginBottom: 2 }}>{s.icon}</div>
-                <div style={{ fontWeight: 800, fontSize: 17, color: COLORS.text }}>{s.val}</div>
+                <div style={{ fontWeight: 800, fontSize: 17, color: COLORS.text }}>{s.val ?? "—"}</div>
                 <div style={{ fontSize: 10, color: COLORS.muted }}>{s.label}</div>
               </div>
             ))}
@@ -149,16 +171,16 @@ export default function SchoolDetail({ school, onClose, onContact }) {
           <div style={{ marginBottom: 20 }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
               <span style={{ fontSize: 13, fontWeight: 700, color: COLORS.text }}>Necesidades cubiertas</span>
-              <span style={{ fontWeight: 800, color: COLORS.green, fontSize: 15 }}>{school.funded}%</span>
+              <span style={{ fontWeight: 800, color: COLORS.green, fontSize: 15 }}>{pct}%</span>
             </div>
-            <ProgressBar pct={school.funded} />
+            <ProgressBar pct={pct} />
             <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 4 }}>
-              {cubiertos} de {totalNeeds} necesidades están cubiertas
+              {cubiertos} de {total} necesidades están cubiertas
             </div>
           </div>
 
           {/* Needs grouped table */}
-          {totalNeeds > 0 && (
+          {total > 0 && (
             <div style={{ marginBottom: 20 }}>
               <h3 style={{ fontSize: 14, fontWeight: 700, color: COLORS.text, marginBottom: 10 }}>
                 Listado de Necesidades

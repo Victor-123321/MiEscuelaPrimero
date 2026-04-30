@@ -69,6 +69,63 @@ async function createDatabase() {
 
 // ── Migrations ───────────────────────────────────────────────────────────────
 
+/**
+ * Execute a migration SQL file against the pool.
+ *
+ * Most migration files are a single CREATE TABLE statement and are executed
+ * directly. Files that define stored procedures and/or triggers use the MySQL
+ * CLI `DELIMITER $$` convention so their bodies can contain semicolons.
+ * mysql2 does NOT support the DELIMITER directive, so we handle it manually:
+ *   1. Strip all `DELIMITER $$` / `DELIMITER ;` lines.
+ *   2. Split the $$ section on `$$` and execute each block individually.
+ *   3. Split the remaining `;`-terminated section (views etc.) on `;`.
+ */
+async function executeMigrationSQL(pool, sql) {
+  if (!sql.includes('DELIMITER $$')) {
+    // Simple single-statement or semicolon-delimited file (migrations 001-008)
+    await pool.query(sql);
+    return;
+  }
+
+  // ── Part 1: stored procedures / triggers (between DELIMITER $$ and DELIMITER ;)
+  const delimSemiIdx = sql.indexOf('DELIMITER ;');
+  const ddPart = sql.substring(0, delimSemiIdx !== -1 ? delimSemiIdx : sql.length);
+
+  const spStatements = ddPart
+    .replace(/DELIMITER \$\$\s*/g, '')
+    .split('$$')
+    .map((s) => s.trim())
+    .filter((s) => {
+      // Keep only blocks that have at least one non-comment, non-empty line
+      const meaningful = s
+        .split('\n')
+        .filter((line) => line.trim().length > 0 && !line.trim().startsWith('--'));
+      return meaningful.length > 0;
+    });
+
+  for (const stmt of spStatements) {
+    await pool.query(stmt);
+  }
+
+  // ── Part 2: views and other ;-terminated statements (after DELIMITER ;)
+  if (delimSemiIdx !== -1) {
+    const viewPart = sql.substring(delimSemiIdx + 'DELIMITER ;'.length);
+    const viewStatements = viewPart
+      .split(';')
+      .map((s) => s.trim())
+      .filter((s) => {
+        const meaningful = s
+          .split('\n')
+          .filter((line) => line.trim().length > 0 && !line.trim().startsWith('--'));
+        return meaningful.length > 0;
+      });
+
+    for (const stmt of viewStatements) {
+      await pool.query(stmt);
+    }
+  }
+}
+
 async function ensureMigrationsTable(pool) {
   await pool.execute(`
     CREATE TABLE IF NOT EXISTS migrations_applied (
@@ -107,8 +164,7 @@ async function runMigrations() {
 
       const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf8');
       try {
-        // Execute the whole statement (each migration file is a single CREATE TABLE)
-        await pool.execute(sql);
+        await executeMigrationSQL(pool, sql);
         await pool.execute(
           'INSERT INTO migrations_applied (migration_name) VALUES (?)',
           [file]
@@ -165,7 +221,14 @@ async function runSeeds() {
     // 3. Run stats + footer seed
     await executeSeedFile(pool, 'seed_stats_and_footer.sql');
 
-    log.success('Seed data population complete.');
+    // Report counts
+    try {
+      const [sc] = await pool.execute('SELECT COUNT(*) AS cnt FROM schools');
+      const [nc] = await pool.execute('SELECT COUNT(*) AS cnt FROM school_needs');
+      log.success(`Seed data population complete. Schools: ${sc[0].cnt}, Needs: ${nc[0].cnt}`);
+    } catch {
+      log.success('Seed data population complete.');
+    }
   } finally {
     await pool.end();
   }

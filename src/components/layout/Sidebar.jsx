@@ -1,15 +1,37 @@
 import { useState, useMemo } from "react";
 import { COLORS } from "../../constants/colors";
+import { MUNICIPALITIES, CATEGORIAS, NIVELES } from "../../data/mockSchools";
 import FilterSection from "../ui/FilterSection";
 
 export default function Sidebar({ filters, setFilters, schools = [] }) {
   const [collapsed, setCollapsed] = useState(false);
 
-  const options = useMemo(() => ({
-    municipalities: [...new Set(schools.map(s => s.municipality))].filter(Boolean).sort(),
-    categories:     [...new Set(schools.flatMap(s => s.categories ?? (s.category ? [s.category] : [])))].filter(Boolean).sort(),
-    types:          [...new Set(schools.map(s => s.type))].filter(Boolean).sort(),
-  }), [schools]);
+  // Derive filter options and counts from the live school list
+  const { municipios, categorias, niveles, municipioCounts, categoriaCounts, nivelCounts } = useMemo(() => {
+    if (!schools.length) {
+      return { municipios: MUNICIPALITIES, categorias: CATEGORIAS, niveles: NIVELES,
+               municipioCounts: null, categoriaCounts: null, nivelCounts: null };
+    }
+
+    const mCounts = {};
+    const cCounts = {};
+    const nCounts = {};
+
+    schools.forEach(s => {
+      if (s.municipio) mCounts[s.municipio] = (mCounts[s.municipio] || 0) + 1;
+      if (s.nivel_educativo) nCounts[s.nivel_educativo] = (nCounts[s.nivel_educativo] || 0) + 1;
+      (s.categories ?? []).forEach(c => { cCounts[c] = (cCounts[c] || 0) + 1; });
+    });
+
+    return {
+      municipios:      Object.keys(mCounts).sort(),
+      categorias:      Object.keys(cCounts).sort(),
+      niveles:         Object.keys(nCounts).sort(),
+      municipioCounts: mCounts,
+      categoriaCounts: cCounts,
+      nivelCounts:     nCounts,
+    };
+  }, [schools]);
 
   const toggle = (key, val) =>
     setFilters(f => ({
@@ -17,7 +39,8 @@ export default function Sidebar({ filters, setFilters, schools = [] }) {
       [key]: f[key].includes(val) ? f[key].filter(x => x !== val) : [...f[key], val],
     }));
 
-  const activeCount = filters.municipalities.length + filters.categories.length + filters.types.length;
+  const activeCount =
+    filters.municipios.length + filters.categorias.length + filters.niveles.length;
 
   return (
     <div style={{ background: "#fff", borderRadius: 14, border: "1px solid rgba(0,74,153,0.08)", boxShadow: "0 2px 12px rgba(0,74,153,0.06)", overflow: "hidden" }}>
@@ -38,15 +61,19 @@ export default function Sidebar({ filters, setFilters, schools = [] }) {
         <div style={{ padding: 16 }}>
           {activeCount > 0 && (
             <button
-              onClick={() => setFilters({ municipalities: [], categories: [], types: [] })}
-              style={{ width: "100%", background: "#fee8e8", border: "1px solid #fbbaba", borderRadius: 8, padding: "7px", cursor: "pointer", color: "#c0392b", fontSize: 12, fontWeight: 600, marginBottom: 14 }}
+              onClick={() => setFilters({ municipios: [], categorias: [], niveles: [] })}
+              style={{
+                width: "100%", background: "#fee8e8", border: "1px solid #fbbaba",
+                borderRadius: 8, padding: "7px", cursor: "pointer",
+                color: "#c0392b", fontSize: 12, fontWeight: 600, marginBottom: 14,
+              }}
             >
               ✕ Limpiar {activeCount} filtro{activeCount > 1 ? "s" : ""}
             </button>
           )}
-          <FilterSection title="Municipio"       options={options.municipalities} selected={filters.municipalities} toggle={v => toggle("municipalities", v)} />
-          <FilterSection title="Categoría"       options={options.categories}     selected={filters.categories}     toggle={v => toggle("categories", v)} />
-          <FilterSection title="Tipo de escuela" options={options.types}          selected={filters.types}          toggle={v => toggle("types", v)} />
+          <FilterSection title="Municipio"              options={municipios} selected={filters.municipios} toggle={v => toggle("municipios", v)} counts={municipioCounts} />
+          <FilterSection title="Categoría de necesidad" options={categorias} selected={filters.categorias} toggle={v => toggle("categorias", v)} counts={categoriaCounts} />
+          <FilterSection title="Nivel educativo"        options={niveles}    selected={filters.niveles}    toggle={v => toggle("niveles", v)}    counts={nivelCounts} />
         </div>
       )}
     </div>

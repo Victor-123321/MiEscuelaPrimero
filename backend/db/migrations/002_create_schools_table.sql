@@ -1,17 +1,23 @@
 -- Schools: one row per school (Municipio + Escuela from the Excel)
 CREATE TABLE IF NOT EXISTS schools (
-  id              INT AUTO_INCREMENT PRIMARY KEY,
-  name            VARCHAR(255) NOT NULL,          -- "Escuela" column
-  municipality    VARCHAR(100) NOT NULL,           -- "Municipio" column
-  type            VARCHAR(100),                    -- Primaria / Preescolar / Secundaria…
-  description     TEXT,
-  students        INT DEFAULT 0,
-  teachers        INT DEFAULT 0,
-  urgent          BOOLEAN DEFAULT FALSE,
-  status          ENUM('active','inactive') DEFAULT 'active',
-  school_image_url VARCHAR(500),
-  created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_municipality (municipality),
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  municipio VARCHAR(150) NOT NULL,
+  plantel VARCHAR(255) NOT NULL,
+  escuela VARCHAR(255) NOT NULL,
+  personal_escolar INT DEFAULT NULL,
+  estudiantes INT DEFAULT NULL,
+  nivel_educativo VARCHAR(100) DEFAULT NULL,
+  cct VARCHAR(50) DEFAULT NULL,
+  modalidad VARCHAR(100) DEFAULT NULL,
+  turno VARCHAR(50) DEFAULT NULL,
+  sostenimiento VARCHAR(100) DEFAULT NULL,
+  direccion TEXT DEFAULT NULL,
+  ubicacion VARCHAR(500) DEFAULT NULL,
+  school_image_url VARCHAR(500) DEFAULT NULL,
+  status ENUM('active', 'inactive') DEFAULT 'active',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_municipio (municipio),
+  INDEX idx_nivel_educativo (nivel_educativo),
   INDEX idx_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
