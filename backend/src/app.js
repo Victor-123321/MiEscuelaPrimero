@@ -14,6 +14,9 @@ const routes = require('./routes');
 
 const app = express();
 
+// Trust reverse proxy (Koyeb, Render, etc.) so rate-limiter reads correct client IP
+app.set('trust proxy', 1);
+
 // Security headers
 app.use(helmet());
 

@@ -31,7 +31,7 @@ function getPool() {
 async function query(sql, params = []) {
   const start = Date.now();
   try {
-    const [rows] = await getPool().execute(sql, params);
+    const [rows] = await getPool().query(sql, params);
     const duration = Date.now() - start;
     if (duration > 1000) {
       logger.warn('Slow query detected', { sql: sql.substring(0, 100), duration });
