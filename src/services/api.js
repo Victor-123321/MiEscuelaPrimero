@@ -1,9 +1,3 @@
-/**
- * API Service — MiEscuelaPrimero
- * All HTTP calls to the Express backend.
- * Dev: Vite proxy  /api → http://localhost:3000
- * Prod: set VITE_API_URL=https://your-backend.com/api/v1
- */
 
 const BASE_URL = import.meta.env.VITE_API_URL || "/api/v1";
 
