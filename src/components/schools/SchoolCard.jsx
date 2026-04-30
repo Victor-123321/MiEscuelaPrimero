@@ -57,7 +57,7 @@ export default function SchoolCard({ school, onClick }) {
       <div style={{ position: "relative", height: 170 }}>
         <img 
           src={displayImage} 
-          alt={🏫} 
+          alt={school.escuela} 
           style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} 
         />
         
