@@ -190,9 +190,31 @@ export default function AdminPage({ onLogout }) {
             <p style={{ color: COLORS.muted, marginBottom: 6, fontSize: 14 }}>
               Arrastra tu archivo Excel (.xlsx) o haz clic para seleccionar
             </p>
-            <p style={{ color: COLORS.muted, fontSize: 12, marginBottom: 24 }}>
-              Formato: archivo <strong>.xlsx</strong> con 2 hojas — <strong>Necesidades</strong> y <strong>Datos de las escuelas</strong>
-            </p>
+<div style={{ marginTop: 24, background: "#fff", borderRadius: 16, padding: 24, border: "1px solid #e8edf5" }}>
+  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+    <h3 style={{ fontSize: 16, fontWeight: 700, color: COLORS.text, margin: 0 }}>Formato del Archivo Maestro</h3>
+    
+    {/* BOTÓN DE DESCARGA */}
+    <a 
+      href="/templates/PlantillaEscuelas.xlsx" 
+      download="Plantilla_Maestra_Escuelas.xlsx"
+      style={{
+        textDecoration: "none",
+        background: "#f0f7ff",
+        color: COLORS.blue,
+        padding: "8px 16px",
+        borderRadius: 8,
+        fontSize: 13,
+        fontWeight: 700,
+        border: `1px solid ${COLORS.blue}40`,
+        display: "flex",
+        alignItems: "center",
+        gap: 6
+      }}
+    >
+      📥 Descargar Plantilla
+    </a>
+  </div>
             <input type="file" accept=".xlsx,.xls" id="fileInput" style={{ display: "none" }} onChange={handleFileChange} />
             <label htmlFor="fileInput" style={{ display: "inline-block", background: uploadStatus === "processing" ? COLORS.muted : COLORS.blue, color: "#fff", padding: "12px 28px", borderRadius: 10, cursor: uploadStatus === "processing" ? "not-allowed" : "pointer", fontWeight: 700, fontSize: 15, boxShadow: "0 4px 16px rgba(0,74,153,0.3)" }}>
               {uploadStatus === "processing" ? "⏳ Procesando…" : "Seleccionar Archivo"}
