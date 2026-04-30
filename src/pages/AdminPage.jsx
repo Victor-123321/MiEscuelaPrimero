@@ -16,7 +16,7 @@ const TABS = [
   { id: "leads",   label: "📬 Solicitudes" },
   { id: "schools", label: "🏫 Escuelas" },
   { id: "stats",   label: "📊 Estadísticas" },
-  { id: "footer",  label: "📝 Footer" },
+  //{ id: "footer",  label: "📝 Footer" },
 ];
 
 const STATUS_LABELS = {
