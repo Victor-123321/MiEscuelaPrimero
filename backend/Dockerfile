@@ -2,14 +2,14 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy dependency files first (better layer caching)
-COPY package*.json ./
+# Copy dependency files from the backend subdirectory
+COPY backend/package*.json ./
 
 # Install production dependencies
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
-# Copy the rest of the source
-COPY . .
+# Copy backend source
+COPY backend/ .
 
 EXPOSE 3000
 
