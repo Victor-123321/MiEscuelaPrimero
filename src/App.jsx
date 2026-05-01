@@ -8,7 +8,6 @@ import HowItWorksPage from "./pages/HowItWorksPage";
 import AdminPage from "./pages/AdminPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
-// ── Login form shown when accessing /admin without a session ──────────────
 function LoginGate({ onLogin }) {
   const [email, setEmail]     = useState("admin@mpj.org.mx");
   const [password, setPassword] = useState("");
@@ -90,7 +89,6 @@ function LoginGate({ onLogin }) {
   );
 }
 
-// ── App root ──────────────────────────────────────────────────────────────
 export default function App() {
   const [page, setPage]   = useState("home");
   const { user, login, logout, isAuthenticated } = useAuth();

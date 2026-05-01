@@ -17,7 +17,6 @@ const config = {
   bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS || '12', 10),
 };
 
-// Simple logger (used before Winston is fully set up)
 const log = {
   info: (msg) => console.log(`[INFO]  ${new Date().toISOString()} ${msg}`),
   success: (msg) => console.log(`[OK]    ${new Date().toISOString()} ${msg}`),
@@ -25,7 +24,6 @@ const log = {
   error: (msg) => console.error(`[ERROR] ${new Date().toISOString()} ${msg}`),
 };
 
-// Create a no-database connection (for creating the DB itself)
 async function createRootConnection() {
   return mysql.createConnection({
     host: config.host,
@@ -37,7 +35,6 @@ async function createRootConnection() {
   });
 }
 
-// Create a connection pool to the target database
 function createPool(database = config.name) {
   return mysql.createPool({
     host: config.host,
@@ -52,8 +49,6 @@ function createPool(database = config.name) {
   });
 }
 
-// ── Database Creation ────────────────────────────────────────────────────────
-
 async function createDatabase() {
   const conn = await createRootConnection();
   try {
@@ -67,22 +62,9 @@ async function createDatabase() {
   }
 }
 
-// ── Migrations ───────────────────────────────────────────────────────────────
-
-/**
- * Execute a migration SQL file against the pool.
- *
- * Most migration files are a single CREATE TABLE statement and are executed
- * directly. Files that define stored procedures and/or triggers use the MySQL
- * CLI `DELIMITER $$` convention so their bodies can contain semicolons.
- * mysql2 does NOT support the DELIMITER directive, so we handle it manually:
- *   1. Strip all `DELIMITER $$` / `DELIMITER ;` lines.
- *   2. Split the $$ section on `$$` and execute each block individually.
- *   3. Split the remaining `;`-terminated section (views etc.) on `;`.
- */
+// mysql2 no soporta DELIMITER $$, entonces hay que parsearlo manualmente
 async function executeMigrationSQL(pool, sql) {
   if (!sql.includes('DELIMITER $$')) {
-    // Simple single-statement or semicolon-delimited file (migrations 001-008)
     await pool.query(sql);
     return;
   }
@@ -96,7 +78,6 @@ async function executeMigrationSQL(pool, sql) {
     .split('$$')
     .map((s) => s.trim())
     .filter((s) => {
-      // Keep only blocks that have at least one non-comment, non-empty line
       const meaningful = s
         .split('\n')
         .filter((line) => line.trim().length > 0 && !line.trim().startsWith('--'));
@@ -107,7 +88,6 @@ async function executeMigrationSQL(pool, sql) {
     await pool.query(stmt);
   }
 
-  // ── Part 2: views and other ;-terminated statements (after DELIMITER ;)
   if (delimSemiIdx !== -1) {
     const viewPart = sql.substring(delimSemiIdx + 'DELIMITER ;'.length);
     const viewStatements = viewPart

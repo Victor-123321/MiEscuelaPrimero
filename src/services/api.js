@@ -32,7 +32,7 @@ const patch         = (path, body) => request("PATCH",  path, body);
 const del           = (path)       => request("DELETE", path);
 const postForm      = (path, fd)   => request("POST",   path, fd, true);
 
-// ── AUTH ─────────────────────────────────────────────────────────────────
+// auth
 export async function login(email, password) {
   const res = await post("/auth/login", { email, password });
   const { token, user } = res.data;
@@ -47,7 +47,7 @@ export async function verifyToken() {
   return res.data.user;
 }
 
-// ── SCHOOLS ──────────────────────────────────────────────────────────────
+// schools
 export async function listSchools(params = {}) {
   const qs = new URLSearchParams();
   Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== null && v !== "") qs.set(k, v); });
@@ -63,17 +63,17 @@ export async function addNeed(schoolId, payload) { return (await post(`/schools/
 export async function updateNeed(schoolId, needId, payload) { return (await put(`/schools/${schoolId}/needs/${needId}`, payload)).data; }
 export async function deleteNeed(schoolId, needId) { return del(`/schools/${schoolId}/needs/${needId}`); }
 
-// ── STATS ─────────────────────────────────────────────────────────────────
+// stats
 export async function getStats() { return (await get("/stats")).data; }
 export async function updateStat(statKey, payload) { return (await put(`/stats/${statKey}`, payload)).data; }
 
-// ── FOOTER ────────────────────────────────────────────────────────────────
+// footer / content
 export async function getFooterContent() { return (await get("/content/footer")).data; }
 export async function updateFooterContent(contentKey, contentValue) {
   return (await put(`/content/footer/${contentKey}`, { content_value: contentValue })).data;
 }
 
-// ── UPLOAD ────────────────────────────────────────────────────────────────
+// upload
 export async function uploadSchoolsFile(file) {
   const fd = new FormData();
   fd.append("file", file);
@@ -84,7 +84,7 @@ export async function getUploadHistory(params = {}) {
   return (await get(`/upload/history${qs ? `?${qs}` : ""}`)).data;
 }
 
-// ── LEADS (donor form) ────────────────────────────────────────────────────
+// leads
 export async function submitLead(payload) { return (await post("/leads", payload)).data; }
 export async function listLeads(params = {}) {
   const qs = new URLSearchParams(params).toString();

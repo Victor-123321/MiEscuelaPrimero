@@ -1,7 +1,3 @@
-/**
- * useAuth — manages admin authentication state.
- * Persists JWT in localStorage and validates it on mount.
- */
 import { useState, useEffect, useCallback } from "react";
 import { login as apiLogin, logout as apiLogout, verifyToken, getToken } from "../services/api";
 
@@ -10,7 +6,6 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(null);
 
-  // On mount, validate any existing token
   useEffect(() => {
     async function check() {
       const token = getToken();
@@ -19,7 +14,7 @@ export function useAuth() {
         const u = await verifyToken();
         setUser(u);
       } catch {
-        // Token expired / invalid — discard silently
+        // expired or invalid, just ignore
       } finally {
         setLoading(false);
       }

@@ -2,12 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { listSchools } from "../services/api";
 import { MOCK_SCHOOLS } from "../data/mockSchools";
 
-/**
- * Maps backend school → UI shape.
- * Backend fields: escuela, municipio, nivel_educativo, estudiantes, personal_escolar,
- *   direccion, plantel, cct, modalidad, turno, sostenimiento, ubicacion, school_image_url
- * Needs shape: { categoria, subcategoria, propuesta, cantidad, unidad, estado, detalles }
- */
 function normalizeSchool(s) {
   const needs = (s.needs ?? []).map(n => ({
     id:           n.id,
@@ -22,18 +16,15 @@ function normalizeSchool(s) {
 
   const categories = [...new Set(needs.map(n => n.categoria).filter(Boolean))];
 
-  // Compute funded % from actual needs data
   const total  = needs.length;
   const score  = needs.reduce((acc, n) =>
     acc + (n.estado === "Cubierto" ? 1 : n.estado === "Cubierto parcialmente" ? 0.5 : 0), 0);
   const funded = total > 0 ? Math.round((score / total) * 100) : 0;
 
-  // Mark urgent if more than 5 uncovered needs
   const uncovered = needs.filter(n => n.estado === "Aun no cubierto").length;
   const urgent    = uncovered > 5;
 
   return {
-    // ── raw backend fields (used directly by SchoolCard, SchoolDetail, Sidebar) ──
     id:               s.id,
     escuela:          s.escuela          ?? "",
     municipio:        s.municipio        ?? "",
@@ -47,9 +38,8 @@ function normalizeSchool(s) {
     turno:            s.turno            ?? "",
     sostenimiento:    s.sostenimiento    ?? "",
     ubicacion:        s.ubicacion        ?? "",
-    // ── computed / aliased fields ──
-    name:        s.escuela   ?? "",    // mock-fallback compat
-    municipality:s.municipio ?? "",   // mock-fallback compat
+    name:        s.escuela   ?? "",
+    municipality:s.municipio ?? "",
     type:        s.nivel_educativo ?? "",
     description: "",
     funded,
@@ -83,7 +73,6 @@ export function useSchools(filters = {}, search = "") {
       const { schools: raw, pagination: pg } = await listSchools(params);
       let normalized = raw.map(normalizeSchool).filter(s => s.needs.length > 0);
 
-      // client-side multi-value filter
       if (filters.municipios?.length  > 1) normalized = normalized.filter(s => filters.municipios.includes(s.municipio));
       if (filters.niveles?.length     > 1) normalized = normalized.filter(s => filters.niveles.includes(s.nivel_educativo));
       if (filters.categorias?.length  > 1) normalized = normalized.filter(s => s.categories.some(c => filters.categorias.includes(c)));

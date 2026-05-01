@@ -7,19 +7,6 @@ const AuditLog = require('../models/AuditLog');
 const { AppError } = require('../middleware/errorHandler');
 const logger = require('../utils/logger');
 
-/**
- * Parse Sheet 2 ("Datos de las escuelas") from the workbook.
- * Row layout (0-based):
- *   Row 0-1: title/header rows
- *   Row 2: "CICLO 2025-2026"
- *   Row 3: empty
- *   Row 4: column headers  →  slice(5) starts data at row index 5
- *
- * Column positions (0-based):
- *   [0]=sequence#  [1]=Municipio  [2]=Plantel  [3]=Escuela  [4]=Personal escolar
- *   [5]=Estudiantes  [6]=Nivel ed.  [7]=CCT  [8]=Modalidad  [9]=Turno
- *   [10]=Sostenimiento  [11]=Dirección  [12]=Ubicación
- */
 function parseEscuelasSheet(workbook) {
   const sheet = workbook.Sheets['Datos de las escuelas'];
   if (!sheet) throw new AppError('El archivo no contiene la hoja "Datos de las escuelas".', 400);
@@ -50,19 +37,7 @@ function parseEscuelasSheet(workbook) {
   return schools;
 }
 
-/**
- * Parse Sheet 1 ("Necesidades") from the workbook.
- * Row layout (0-based):
- *   Row 0: empty
- *   Row 1: "NECESIDADES DE ESCUELAS"
- *   Row 2: empty
- *   Row 3: column headers  →  slice(4) starts data at row index 4
- *
- * NOTE: The sheet's !ref starts at column B (B1:K1084), so xlsx's sheet_to_json
- * returns range-relative 0-based arrays where index 0 = column B:
- *   [0]=Municipio  [1]=Escuela  [2]=Categoría  [3]=Subcategoría
- *   [4]=Propuesta  [5]=Cantidad  [6]=Unidad  [7]=Estado  [8]=Detalles
- */
+// hoja Necesidades: !ref empieza en B1, entonces row[0] = columna B = Municipio
 function parseNecesidadesSheet(workbook) {
   const sheet = workbook.Sheets['Necesidades'];
   if (!sheet) throw new AppError('El archivo no contiene la hoja "Necesidades".', 400);
@@ -91,7 +66,6 @@ function parseNecesidadesSheet(workbook) {
   return needs;
 }
 
-/** Normalize a school name for fuzzy comparison: remove accents + lowercase */
 function normalize(str) {
   return str
     .normalize('NFD')
@@ -100,16 +74,7 @@ function normalize(str) {
     .trim();
 }
 
-/**
- * Match a need's escuela value to a school ID from the schoolMap.
- * Steps (in order):
- *   1. Exact match (original string)
- *   2. Accent-insensitive exact match
- *   3. Prefix match (handles abbreviated Excel names like "La Reserva" → "La Reserva (Pre)")
- *      — if multiple schools match the same prefix we pick the best (longest key match)
- */
 function matchSchool(schoolMap, needEscuela) {
-  // 1. Exact
   if (schoolMap[needEscuela]) return schoolMap[needEscuela];
 
   const normNeed = normalize(needEscuela);
@@ -135,7 +100,6 @@ function matchSchool(schoolMap, needEscuela) {
 async function processUpload(file, adminContext) {
   const { originalname, buffer, mimetype, size } = file;
 
-  // Only accept XLSX/XLS
   const isXlsx = originalname.endsWith('.xlsx') || originalname.endsWith('.xls') ||
     mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
     mimetype === 'application/vnd.ms-excel';
@@ -144,7 +108,6 @@ async function processUpload(file, adminContext) {
     throw new AppError('El formato debe ser XLSX con 2 hojas: "Necesidades" y "Datos de las escuelas".', 400);
   }
 
-  // Create upload log entry
   const log = await FileUploadLog.create({
     filename: originalname,
     fileSize: size,
@@ -161,9 +124,8 @@ async function processUpload(file, adminContext) {
 
     const workbook = XLSX.read(buffer, { type: 'buffer' });
 
-    // --- Pass 1: upsert schools from Sheet 2 ---
     const escuelasData = parseEscuelasSheet(workbook);
-    const schoolMap = {}; // escuela name → school id
+    const schoolMap = {};
 
     for (let i = 0; i < escuelasData.length; i++) {
       const schoolData = escuelasData[i];

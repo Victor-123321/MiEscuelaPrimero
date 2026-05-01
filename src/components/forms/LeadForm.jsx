@@ -3,12 +3,9 @@ import { COLORS } from "../../constants/colors";
 import { DONATION_TYPES, TIPOS_INSTANCIA } from "../../data/mockStats";
 import { submitLead } from "../../services/api";
 
-// Donation types that get the "formación/psicología" extra fields
-const GRUPO_FORMACION   = ["formacion_familias","formacion_estudiantes","formacion_docentes","atencion_psicologica"];
-// Types that get the "material/mobiliario" extra fields
-const GRUPO_MATERIAL    = ["material_tecnologico","material_papeleria","material_literario","material_ed_fisica","material_infraestructura","mobiliario"];
-// Types that get the "apoyo/descripción" fields
-const GRUPO_ACCESO      = ["transporte","condiciones_camino","salud_fisica","visitas_extraescolares","apoyo_gestion","otro"];
+const GRUPO_FORMACION = ["formacion_familias","formacion_estudiantes","formacion_docentes","atencion_psicologica"];
+const GRUPO_MATERIAL  = ["material_tecnologico","material_papeleria","material_literario","material_ed_fisica","material_infraestructura","mobiliario"];
+const GRUPO_ACCESO    = ["transporte","condiciones_camino","salud_fisica","visitas_extraescolares","apoyo_gestion","otro"];
 
 const FLETE_OPTS = [
   { id: "hasta_escuela", label: "Puedo llevarlo hasta la escuela" },
@@ -22,7 +19,6 @@ const PUBLICO_OPTS = [
   { id: "familias",    label: "Familias" },
 ];
 
-// ── Small helpers ─────────────────────────────────────────────────────────
 function Field({ label, required, children }) {
   return (
     <div style={{ marginBottom: 14 }}>
@@ -86,17 +82,14 @@ function ToggleChip({ active, onClick, children }) {
   );
 }
 
-// ── Steps ─────────────────────────────────────────────────────────────────
 const STEPS = ["Contacto", "Donativo", "Detalles", "Confirmar"];
 
-// ══════════════════════════════════════════════════════════════════════════
 export default function LeadForm({ school, schools = [], onClose }) {
   const [step, setStep]     = useState(0);
   const [sent, setSent]     = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError]   = useState("");
 
-  // Step 1 — contact
   const [nombre,           setNombre]           = useState("");
   const [tipoInstancia,    setTipoInstancia]    = useState("");
   const [tipoInstanciaOtro,setTipoInstanciaOtro] = useState("");
@@ -106,31 +99,24 @@ export default function LeadForm({ school, schools = [], onClose }) {
   const [municipioEstado,  setMunicipioEstado]  = useState("");
   const [privacidad,       setPrivacidad]       = useState(false);
 
-  // Step 2 — donation type
   const [tipoDonativo,    setTipoDonativo]    = useState(school ? "" : "");
   const [tipoDonativoOtro,setTipoDonativoOtro] = useState("");
   const [escuelasDestino, setEscuelasDestino] = useState(school ? [school.name] : []);
 
-  // Step 3 — conditional fields
-  // Formación / psicología
   const [temaFormacion,      setTemaFormacion]      = useState("");
   const [publicoDirigido,    setPublicoDirigido]    = useState([]);
   const [numHoras,           setNumHoras]           = useState("");
-  // Material / mobiliario
   const [articuloDonar,      setArticuloDonar]      = useState("");
   const [cantidadArticulos,  setCantidadArticulos]  = useState("");
   const [opcionFlete,        setOpcionFlete]        = useState("");
   const [direccionRecoleccion,setDireccionRecoleccion] = useState("");
-  // Acceso / otros
   const [descripcionApoyo,   setDescripcionApoyo]   = useState("");
 
   const donationType = DONATION_TYPES.find(d => d.id === tipoDonativo);
-  const grupo = donationType?.group;
   const isFormacion  = GRUPO_FORMACION.includes(tipoDonativo);
   const isMaterial   = GRUPO_MATERIAL.includes(tipoDonativo);
   const isAcceso     = GRUPO_ACCESO.includes(tipoDonativo);
 
-  // All available schools for destination picker
   const allSchoolNames = schools.length
     ? schools.map(s => s.name)
     : school ? [school.name] : [];
@@ -141,7 +127,6 @@ export default function LeadForm({ school, schools = [], onClose }) {
   const togglePublico = (id) =>
     setPublicoDirigido(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
 
-  // ── Validation per step ─────────────────────────────────────────────────
   function canAdvance() {
     if (step === 0) return nombre && email && tipoInstancia && privacidad;
     if (step === 1) return tipoDonativo !== "";
@@ -154,7 +139,6 @@ export default function LeadForm({ school, schools = [], onClose }) {
     return true;
   }
 
-  // ── Submit ───────────────────────────────────────────────────────────────
   async function handleSubmit() {
     setSending(true);
     setError("");
@@ -188,7 +172,6 @@ export default function LeadForm({ school, schools = [], onClose }) {
     }
   }
 
-  // ── Success screen ────────────────────────────────────────────────────────
   if (sent) {
     return (
       <Overlay onClose={onClose}>
@@ -213,7 +196,6 @@ export default function LeadForm({ school, schools = [], onClose }) {
 
   return (
     <Overlay onClose={onClose}>
-      {/* Header */}
       <div style={{ background: COLORS.blue, padding: "18px 22px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
           <h2 style={{ color: "#fff", fontSize: 17, fontWeight: 700, margin: 0 }}>
@@ -221,7 +203,6 @@ export default function LeadForm({ school, schools = [], onClose }) {
           </h2>
           <button onClick={onClose} style={{ background: "rgba(255,255,255,0.15)", border: "none", cursor: "pointer", borderRadius: "50%", width: 28, height: 28, color: "#fff", fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
         </div>
-        {/* Step progress */}
         <div style={{ display: "flex", gap: 4 }}>
           {STEPS.map((s, i) => (
             <div key={s} style={{ flex: 1 }}>
@@ -232,10 +213,7 @@ export default function LeadForm({ school, schools = [], onClose }) {
         </div>
       </div>
 
-      {/* Body */}
       <div style={{ padding: "20px 22px", overflowY: "auto", maxHeight: "55vh" }}>
-
-        {/* ── Step 0: Contacto ──────────────────────────────────────────── */}
         {step === 0 && (
           <div>
             <Field label="Nombre completo" required>
@@ -268,7 +246,6 @@ export default function LeadForm({ school, schools = [], onClose }) {
             <Field label="Municipio y estado">
               <TextInput value={municipioEstado} onChange={setMunicipioEstado} placeholder="Ej. Zapopan, Jalisco" />
             </Field>
-            {/* Aviso de privacidad */}
             <div style={{ background: "#f8faff", border: "1px solid #dde3f0", borderRadius: 10, padding: "12px 14px", display: "flex", gap: 10, alignItems: "flex-start" }}>
               <input
                 type="checkbox"
@@ -289,7 +266,6 @@ export default function LeadForm({ school, schools = [], onClose }) {
           </div>
         )}
 
-        {/* ── Step 1: Tipo de donativo ──────────────────────────────────── */}
         {step === 1 && (
           <div>
             <p style={{ color: COLORS.muted, fontSize: 13, marginBottom: 14 }}>¿Cómo te gustaría contribuir?</p>
@@ -319,10 +295,8 @@ export default function LeadForm({ school, schools = [], onClose }) {
           </div>
         )}
 
-        {/* ── Step 2: Detalles del donativo ─────────────────────────────── */}
         {step === 2 && (
           <div>
-            {/* School destination selector */}
             <Field label="Escuela(s) destino" required>
               {allSchoolNames.length > 0 ? (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -337,7 +311,6 @@ export default function LeadForm({ school, schools = [], onClose }) {
               )}
             </Field>
 
-            {/* Formación / Psicología */}
             {isFormacion && (
               <>
                 {tipoDonativo !== "atencion_psicologica" && (
@@ -360,7 +333,6 @@ export default function LeadForm({ school, schools = [], onClose }) {
               </>
             )}
 
-            {/* Material / Mobiliario */}
             {isMaterial && (
               <>
                 <Field label="Artículo a donar" required>
@@ -387,7 +359,6 @@ export default function LeadForm({ school, schools = [], onClose }) {
               </>
             )}
 
-            {/* Acceso / Salud / Gestión / Otro */}
             {isAcceso && (
               <Field label="Describe el tipo de apoyo que deseas ofrecer" required>
                 <TextArea value={descripcionApoyo} onChange={setDescripcionApoyo} placeholder="Describe detalladamente en qué consiste tu apoyo…" rows={4} />
@@ -396,7 +367,6 @@ export default function LeadForm({ school, schools = [], onClose }) {
           </div>
         )}
 
-        {/* ── Step 3: Confirmar ─────────────────────────────────────────── */}
         {step === 3 && (
           <div>
             <p style={{ color: COLORS.muted, fontSize: 13, marginBottom: 16 }}>Revisa tu información antes de enviar:</p>
@@ -425,7 +395,6 @@ export default function LeadForm({ school, schools = [], onClose }) {
         )}
       </div>
 
-      {/* Footer nav */}
       <div style={{ padding: "14px 22px", borderTop: "1px solid #e8edf5", display: "flex", gap: 10 }}>
         {step > 0 && (
           <button onClick={() => setStep(s => s - 1)} style={{ flex: 1, background: "#f0f4fb", border: "none", cursor: "pointer", borderRadius: 10, padding: "11px", fontSize: 14, fontWeight: 600, color: COLORS.muted }}>
@@ -454,7 +423,6 @@ export default function LeadForm({ school, schools = [], onClose }) {
   );
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────
 function Overlay({ onClose, children }) {
   return (
     <div

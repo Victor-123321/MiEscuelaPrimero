@@ -22,3 +22,20 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Claude / AI tooling
+.claude/
+CLAUDE.md
+
+# Env examples and sensitive files
+.env.example
+backend/.env.example
+
+# Deliverable docs (not part of source)
+*.docx
+PresentacionScript.md
+specifications.md
+INTEGRATION.md
+
+# Compressed archives
+*.zip

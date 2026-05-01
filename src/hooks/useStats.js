@@ -1,7 +1,3 @@
-/**
- * useStats — fetches hero statistics from the API.
- * Falls back to INITIAL_STATS mock when API is unavailable.
- */
 import { useState, useEffect } from "react";
 import { getStats } from "../services/api";
 import { INITIAL_STATS } from "../data/mockStats";
