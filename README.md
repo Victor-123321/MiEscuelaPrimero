@@ -188,3 +188,4 @@ MIT © Mi Escuela Primero — Nuevo León, México
 **Mi Escuela Primero** is a social impact initiative dedicated to improving educational conditions in public elementary schools across Nuevo León. Every donation is tracked, reported, and directly applied to the school's specific needs.
 
 📧 contacto@mpj.org.mx · 📞 +52 33 0000-0000
+
