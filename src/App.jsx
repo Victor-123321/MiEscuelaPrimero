@@ -9,7 +9,7 @@ import AdminPage from "./pages/AdminPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 function LoginGate({ onLogin }) {
-  const [email, setEmail]     = useState("admin@mpj.org.mx");
+  const [email, setEmail]     = useState("");
   const [password, setPassword] = useState("");
   const [error, setError]     = useState("");
   const [loading, setLoading] = useState(false);
@@ -81,9 +81,6 @@ function LoginGate({ onLogin }) {
           </button>
         </form>
 
-        <p style={{ marginTop: 18, textAlign: "center", fontSize: 11, color: COLORS.muted }}>
-          Credenciales de prueba: admin@mpj.org.mx / Admin123!
-        </p>
       </div>
     </div>
   );
