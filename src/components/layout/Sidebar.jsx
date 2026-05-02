@@ -6,7 +6,6 @@ import FilterSection from "../ui/FilterSection";
 export default function Sidebar({ filters, setFilters, schools = [] }) {
   const [collapsed, setCollapsed] = useState(false);
 
-  // Derive filter options and counts from the live school list
   const { municipios, categorias, niveles, municipioCounts, categoriaCounts, nivelCounts } = useMemo(() => {
     if (!schools.length) {
       return { municipios: MUNICIPALITIES, categorias: CATEGORIAS, niveles: NIVELES,

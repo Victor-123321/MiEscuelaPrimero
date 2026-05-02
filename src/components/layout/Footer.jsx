@@ -6,7 +6,6 @@ export default function Footer() {
     <footer style={{ background: COLORS.blueDark, padding: "52px 20px 28px" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
 
-        {/* Title */}
         <div style={{ textAlign: "center", marginBottom: 40 }}>
           <h2 style={{
             color: "#fff", fontSize: "clamp(22px, 4vw, 30px)",
@@ -17,7 +16,6 @@ export default function Footer() {
           </p>
         </div>
 
-        {/* Steps */}
         <div style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
@@ -38,7 +36,6 @@ export default function Footer() {
           ))}
         </div>
 
-        {/* Contact card */}
         <div style={{
           background: "rgba(255,255,255,0.07)",
           border: "1px solid rgba(255,255,255,0.12)",
@@ -87,7 +84,6 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom bar */}
         <div style={{
           borderTop: "1px solid rgba(255,255,255,0.1)",
           paddingTop: 20,

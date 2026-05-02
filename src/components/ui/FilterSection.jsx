@@ -2,10 +2,6 @@
 import { useState } from "react";
 import { COLORS } from "../../constants/colors";
 
-/**
- * counts — optional object { [optionValue]: number } for live school counts.
- * When omitted, the badge is hidden.
- */
 export default function FilterSection({ title, options, selected, toggle, counts }) {
   const [collapsed, setCollapsed] = useState(false);
 

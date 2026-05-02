@@ -7,7 +7,6 @@ const ESTADO_STYLE = {
   "Aun no cubierto":       { background: "#fee8e8", color: "#c0392b", icon: "❌" },
 };
 
-// Groups needs by category then subcategory for a clean hierarchical table
 function NeedsTable({ needs }) {
   const grouped = needs.reduce((acc, n) => {
     const cat = n.categoria || "Sin categoría";
