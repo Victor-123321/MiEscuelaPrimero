@@ -1,4 +1,4 @@
-# 🏫 Mi Escuela Primero — Interactive Impact Catalog
+# Mi Escuela Primero — Interactive Impact Catalog
 
 > A social impact platform connecting donors with real needs of public elementary schools in Nuevo León, México.
 
@@ -14,42 +14,42 @@ The platform bridges the gap between schools that lack resources and donors who 
 
 ---
 
-## ✨ Features
+## Features
 
-### 🗺️ Multi-Page Application
+### Multi-Page Application
 - **Home / Catalog** — Hero section with live impact statistics, searchable and filterable school grid
 - **How It Works** — Step-by-step donation process walkthrough
 - **School Detail View** — Full breakdown of needs, quantities, models, and estimated costs per school
 - **Admin Dashboard** — Private panel for webmaster content management
 
-### 🔍 Smart Filtering
+### Smart Filtering
 - Filter by **Municipality**, **Category**, and **Institution Type**
 - Collapsible sidebar to maximize screen space on any device
 - Real-time search across school names and descriptions
 - Active filter count badge for quick reference
 
-### 🏫 School Cards
+### School Cards
 - Photo, description, category, and municipality tags
 - Visual **funding progress bar** (color-coded by urgency)
 - Urgent school indicators 🔥
 - Remaining funding amount at a glance
 
-### 💬 Lead Generation
+### Lead Generation
 - "Support This School" button on every card and detail view
 - Professional contact/donation form (name, email, phone, organization, message)
 - Success confirmation with auto-close
 
-### ⚙️ Admin Dashboard
+### Admin Dashboard
 | Tab | Functionality |
 |-----|---------------|
-| 📤 File Upload | Drag & drop Excel/CSV master file with format reference and downloadable template |
-| 📊 Statistics | Edit hero section impact numbers live |
-| 📝 Footer Content | Update "What's Next?" steps and contact info |
-| 🏫 Schools | View, edit, and delete school listings |
+| File Upload | Drag & drop Excel/CSV master file with format reference and downloadable template |
+| Statistics | Edit hero section impact numbers live |
+| Footer Content | Update "What's Next?" steps and contact info |
+| Schools | View, edit, and delete school listings |
 
 ---
 
-## 🎨 Design System
+## Design System
 
 | Token | Value | Usage |
 |-------|-------|-------|
@@ -61,7 +61,7 @@ The platform bridges the gap between schools that lack resources and donors who 
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Node.js 18+
@@ -107,7 +107,7 @@ npm run preview
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 mi-escuela-primero/
@@ -124,7 +124,7 @@ mi-escuela-primero/
 
 ---
 
-## 📋 Master File Format (CSV/Excel Upload)
+## Master File Format (CSV/Excel Upload)
 
 The Admin panel accepts `.xlsx` or `.csv` files with the following columns:
 
@@ -142,7 +142,7 @@ The Admin panel accepts `.xlsx` or `.csv` files with the following columns:
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
 - [ ] Refactor styles in SCSS for maintainability
 - [ ] Supabase integration for real-time data persistence
@@ -155,7 +155,7 @@ The Admin panel accepts `.xlsx` or `.csv` files with the following columns:
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Framework** — [React 18](https://react.dev/) via [Vite](https://vitejs.dev/)
 - **Styling** — Inline styles with CSS variables, WIP: passing to SCSS for maintainability
@@ -165,7 +165,7 @@ The Admin panel accepts `.xlsx` or `.csv` files with the following columns:
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please open an issue first to discuss what you'd like to change.
 
@@ -177,13 +177,13 @@ git push origin feature/your-feature-name
 
 ---
 
-## 📄 License
+## License
 
 MIT © Mi Escuela Primero — Nuevo León, México
 
 ---
 
-## 💚 About the Program
+## About the Program
 
 **Mi Escuela Primero** is a social impact initiative dedicated to improving educational conditions in public elementary schools across Nuevo León. Every donation is tracked, reported, and directly applied to the school's specific needs.
 
