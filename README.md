@@ -1,6 +1,6 @@
 # Mi Escuela Primero — Interactive Impact Catalog
 
-> A social impact platform connecting donors with real needs of public elementary schools in Nuevo León, México.
+> A social impact platform connecting donors with real needs of public elementary schools in Jalisco, México.
 
 ![Mi Escuela Primero](https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1200&h=400&fit=crop)
 
@@ -31,7 +31,7 @@ The platform bridges the gap between schools that lack resources and donors who 
 ### School Cards
 - Photo, description, category, and municipality tags
 - Visual **funding progress bar** (color-coded by urgency)
-- Urgent school indicators 🔥
+- Urgent school indicators
 - Remaining funding amount at a glance
 
 ### Lead Generation
@@ -43,8 +43,6 @@ The platform bridges the gap between schools that lack resources and donors who 
 | Tab | Functionality |
 |-----|---------------|
 | File Upload | Drag & drop Excel/CSV master file with format reference and downloadable template |
-| Statistics | Edit hero section impact numbers live |
-| Footer Content | Update "What's Next?" steps and contact info |
 | Schools | View, edit, and delete school listings |
 
 ---
@@ -142,19 +140,6 @@ The Admin panel accepts `.xlsx` or `.csv` files with the following columns:
 
 ---
 
-## Roadmap
-
-- [ ] Refactor styles in SCSS for maintainability
-- [ ] Supabase integration for real-time data persistence
-- [ ] Admin authentication (Supabase Auth)
-- [ ] School detail dedicated pages with shareable URLs
-- [ ] Social sharing buttons per school
-- [ ] Email notifications for new donor leads
-- [ ] Donor dashboard with contribution history
-- [ ] Mobile app (React Native)
-
----
-
 ## Tech Stack
 
 - **Framework** — [React 18](https://react.dev/) via [Vite](https://vitejs.dev/)
@@ -187,5 +172,5 @@ MIT © Mi Escuela Primero — Nuevo León, México
 
 **Mi Escuela Primero** is a social impact initiative dedicated to improving educational conditions in public elementary schools across Nuevo León. Every donation is tracked, reported, and directly applied to the school's specific needs.
 
-📧 contacto@mpj.org.mx · 📞 +52 33 0000-0000
+📧 rgascon@mpj.org.mx · 📞 +52 33 1177 8783
 
